@@ -507,7 +507,7 @@
       );
     };
 
-    const ProductCard = ({ p, index, onCart, onView }) => {
+    const ProductCard = ({ p, index, onCart, onView, onWish, isFav }) => {
       const displayPrice = useCountUp(p.discount_price || 0);
       return (
         <motion.div
@@ -528,10 +528,18 @@
               </div>
             )}
             {p.discount_perc > 0 && (
-              <div style={{ position: 'absolute', top: '8px', left: '8px', background: '#e53935', color: '#fff', fontSize: '9px', fontWeight: '800', padding: '3px 6px', borderRadius: '4px' }}>
+              <div style={{ position: 'absolute', top: '8px', left: '8px', background: '#e53935', color: '#fff', fontSize: '9px', fontWeight: '800', padding: '3px 6px', borderRadius: '4px', zIndex: 2 }}>
                 {p.discount_perc}% OFF
               </div>
             )}
+            <div 
+              onClick={(e) => onWish(e, p)}
+              style={{ position: 'absolute', top: '8px', right: '8px', zIndex: 2, background: 'rgba(255,255,255,0.8)', padding: '6px', borderRadius: '50%', display: 'flex', transition: 'all 0.3s' }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill={isFav ? "var(--gold)" : "none"} stroke={isFav ? "var(--gold)" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+              </svg>
+            </div>
           </div>
           <div className="p-details">
             <div style={{ fontSize: '10px', color: 'var(--gold)', fontWeight: '700', letterSpacing: '1px', marginBottom: '4px' }}>CODE: #{p.id.slice(-6).toUpperCase()}</div>
@@ -668,6 +676,7 @@
       const [products, setProducts] = useState([]);
       const [categories, setCategories] = useState([]);
       const [cart, setCart] = useState(() => readLS('sai_cart'));
+      const [wishlist, setWishlist] = useState(() => readLS('sai_wishlist'));
       const [selProd, setSelProd] = useState(null);
       const [activeImg, setActiveImg] = useState(0);
       const [showCheckout, setShowCheckout] = useState(false);
@@ -736,6 +745,24 @@
       useEffect(() => {
         localStorage.setItem('sai_cart', JSON.stringify(cart));
       }, [cart]);
+
+      useEffect(() => {
+        localStorage.setItem('sai_wishlist', JSON.stringify(wishlist));
+      }, [wishlist]);
+
+      const toggleWishlist = (e, p) => {
+        e.stopPropagation();
+        setWishlist(prev => {
+          const isFav = prev.find(i => i.id === p.id);
+          if (isFav) {
+            showToast("Removed from wishlist");
+            return prev.filter(i => i.id !== p.id);
+          } else {
+            showToast("Added to wishlist ❤️");
+            return [...prev, p];
+          }
+        });
+      };
 
       const showToast = (msg) => {
         setToast(msg);
@@ -1016,9 +1043,31 @@
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '20px' }}>
                     {products.map((p, i) => (
-                      <ProductCard key={p.id} p={p} index={i} onCart={addCart} onView={(p) => nav('pdp', p)} />
+                      <ProductCard key={p.id} p={p} index={i} onCart={addCart} onView={(p) => nav('pdp', p)} onWish={toggleWishlist} isFav={wishlist.some(w => w.id === p.id)} />
                     ))}
                   </div>
+                </motion.div>
+              )}
+
+              {view === 'wishlist' && (
+                <motion.div key="wish" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} style={{ maxWidth: '1200px', margin: '40px auto', padding: '0 24px' }}>
+                  <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+                    <h1 className="display-font" style={{ fontSize: '56px', marginBottom: '16px' }}>Your Wishlist</h1>
+                    <p style={{ color: 'var(--text-muted)' }}>Items you have carefully selected for your collection.</p>
+                  </div>
+                  {wishlist.length === 0 ? (
+                    <div className="glass" style={{ padding: '80px', borderRadius: '40px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '64px', marginBottom: '24px', opacity: 0.2 }}>❤️</div>
+                      <h3>Your wishlist is empty</h3>
+                      <button className="btn-lux" style={{ marginTop: '24px' }} onClick={() => nav('shop')}>Discover Pieces</button>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '20px' }}>
+                      {wishlist.map((p, i) => (
+                        <ProductCard key={p.id} p={p} index={i} onCart={addCart} onView={(p) => nav('pdp', p)} onWish={toggleWishlist} isFav={true} />
+                      ))}
+                    </div>
+                  )}
                 </motion.div>
               )}
 
@@ -1058,7 +1107,14 @@
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                         <div style={{ color: 'var(--gold)', letterSpacing: '4px', textTransform: 'uppercase', fontWeight: '800', fontSize: '12px' }}>{selProd.category}</div>
-                        <div style={{ fontSize: '24px', cursor: 'pointer' }}>♥</div>
+                        <div 
+                          onClick={(e) => toggleWishlist(e, selProd)}
+                          style={{ fontSize: '24px', cursor: 'pointer', color: wishlist.some(w => w.id === selProd.id) ? 'var(--gold)' : 'inherit' }}
+                        >
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill={wishlist.some(w => w.id === selProd.id) ? "var(--gold)" : "none"} stroke={wishlist.some(w => w.id === selProd.id) ? "var(--gold)" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                          </svg>
+                        </div>
                       </div>
                       <h1 className="display-font" style={{ fontSize: '64px', marginBottom: '16px', lineHeight: 1 }}>{selProd.name}</h1>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: '20px', marginBottom: '32px' }}>
