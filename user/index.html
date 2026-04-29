@@ -676,17 +676,23 @@
       const [userOrders, setUserOrders] = useState([]);
 
       useEffect(() => {
-        // Initial Auth Check
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          setUser(session?.user ?? null);
-          if (session?.user) fetchUserOrders(session.user.id);
-        });
+        const checkUser = async () => {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            setUser(session.user);
+            fetchUserOrders(session.user.id);
+          }
+        };
+        checkUser();
 
-        // Listen for Auth Changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-          setUser(session?.user ?? null);
-          if (session?.user) fetchUserOrders(session.user.id);
-          else setUserOrders([]);
+          if (session) {
+            setUser(session.user);
+            fetchUserOrders(session.user.id);
+          } else {
+            setUser(null);
+            setUserOrders([]);
+          }
         });
 
         const loadData = async () => {
@@ -712,9 +718,10 @@
       };
 
       const login = async () => {
+        const redirectUrl = window.location.origin + window.location.pathname;
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
-          options: { redirectTo: window.location.href }
+          options: { redirectTo: redirectUrl }
         });
         if (error) showToast("Login failed: " + error.message);
       };
