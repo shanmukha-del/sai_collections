@@ -808,70 +808,102 @@
 
       const generateInvoice = (form, cart, total) => {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const gold = [201, 168, 76];
+        const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+        const margin = 10;
+        const width = 190;
+        
+        doc.setLineWidth(0.5);
+        doc.rect(margin, margin, width, 277);
+
+        // TOP SECTION
+        doc.line(margin, 65, margin + width, 65);
+        doc.line(120, margin, 120, 65);
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(14);
+        doc.text("Ship To", margin + 5, margin + 10);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(12);
+        doc.text(form.name.toUpperCase(), margin + 5, margin + 18);
+        doc.setFontSize(9);
+        const splitAddr = doc.splitTextToSize(form.address, 100);
+        doc.text(splitAddr, margin + 5, margin + 25);
+        doc.setFont("helvetica", "bold");
+        doc.text(`Phone No.: ${form.phone}`, margin + 5, margin + 55);
 
         doc.setFont("helvetica", "bold");
         doc.setFontSize(28);
-        doc.setTextColor(gold[0], gold[1], gold[2]);
-        doc.text("SAI COLLECTIONS", 105, 30, { align: 'center' });
+        doc.text("SAI", 140, margin + 25);
+        doc.setFontSize(10);
+        doc.text("COLLECTIONS", 140, margin + 32);
+        doc.setLineWidth(1.5);
+        doc.line(140, margin + 35, 175, margin + 35);
+
+        // MIDDLE SECTION
+        doc.line(margin, 105, margin + width, 105);
+        doc.line(95, 65, 95, 105);
 
         doc.setFontSize(10);
-        doc.setTextColor(120);
-        doc.text("EXQUISITE ARTISAN LUXURY JEWELLERY", 105, 38, { align: 'center' });
-
-        doc.setDrawColor(gold[0], gold[1], gold[2]);
-        doc.setLineWidth(0.5);
-        doc.line(20, 45, 190, 45);
-
-        doc.setFontSize(11);
-        doc.setTextColor(0);
-        doc.text("DELIVER TO:", 20, 60);
         doc.setFont("helvetica", "normal");
-        doc.text(`${form.name}`, 20, 68);
-        doc.text(`Phone: ${form.phone}`, 20, 74);
-        doc.text(`${form.address}`, 20, 80, { maxWidth: 100 });
+        doc.text("Payment:", margin + 5, 75);
+        doc.setFont("helvetica", "bold");
+        doc.text("PREPAID (ONLINE)", margin + 35, 75);
+        doc.setFont("helvetica", "normal");
+        doc.text("ORDER TOTAL:", margin + 5, 85);
+        doc.setFont("helvetica", "bold");
+        doc.text(`${total.toLocaleString()} INR`, margin + 35, 85);
+
+        doc.setLineWidth(0.2);
+        doc.rect(105, 70, 85, 25);
+        doc.setFontSize(7);
+        doc.text("|| |||| ||| ||||| || |||| |||| ||| |||| || ||||", 147, 83, { align: 'center' });
+        doc.text(`#SC${Date.now().toString().slice(-8)}`, 147, 88, { align: 'center' });
+        doc.setFontSize(10);
+        doc.text("Routing Code: AP/CHIT/PEN", 147, 100, { align: 'center' });
+
+        // SHIPPED BY SECTION
+        doc.line(margin, 155, margin + width, 155);
+        doc.setFont("helvetica", "bold");
+        doc.text("Shipped By (If undelivered, return to)", margin + 5, 115);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.text("SAI COLLECTIONS LUXURY JEWELLERY", margin + 5, 125);
+        doc.text("Penumur, Chittoor (DT), Andhra Pradesh, India", margin + 5, 130);
+        doc.text("Phone No.: +91 9441573100", margin + 5, 135);
+        doc.text("GSTIN: 37AAXFS4581C1Z0", margin + 5, 140);
 
         doc.setFont("helvetica", "bold");
-        doc.text("TAX INVOICE / BILL OF SUPPLY", 190, 60, { align: 'right' });
+        doc.text(`Order #: ${Date.now().toString().slice(-10)}`, 140, 115);
+        doc.text(`Date: ${new Date().toLocaleDateString()}`, 140, 123);
+
+        // TABLE
+        doc.setFillColor(240, 240, 240);
+        doc.rect(margin, 155, width, 10, 'F');
+        doc.line(margin, 165, margin + width, 165);
+        doc.setFont("helvetica", "bold");
+        doc.text("Product Name", margin + 5, 161);
+        doc.text("Qty", margin + 130, 161);
+        doc.text("Price", margin + 150, 161);
+        doc.text("Total", margin + 175, 161);
+
         doc.setFont("helvetica", "normal");
-        doc.text(`Date: ${new Date().toLocaleDateString()}`, 190, 68, { align: 'right' });
-        doc.text(`Order ID: #SC${Date.now().toString().slice(-6)}`, 190, 74, { align: 'right' });
-
-        const tableData = cart.map(i => [
-          i.name,
-          `Rs.${(i.discount_price || 0).toLocaleString()}`,
-          i.qty,
-          `Rs.${((i.discount_price || 0) * i.qty).toLocaleString()}`
-        ]);
-
-        doc.autoTable({
-          startY: 95,
-          head: [['Product Description', 'Price', 'Qty', 'Net Amount']],
-          body: tableData,
-          headStyles: { fillColor: gold, textColor: 255, fontStyle: 'bold' },
-          alternateRowStyles: { fillColor: [252, 250, 247] },
-          margin: { left: 20, right: 20 }
+        let y = 173;
+        cart.forEach(item => {
+          doc.text(item.name.substring(0, 50), margin + 5, y);
+          doc.text(item.qty.toString(), margin + 132, y);
+          doc.text(item.discount_price.toLocaleString(), margin + 150, y);
+          doc.text((item.qty * item.discount_price).toLocaleString(), margin + 175, y);
+          y += 10;
         });
 
-        const finalY = doc.lastAutoTable.finalY + 15;
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(16);
-        doc.text(`GRAND TOTAL: Rs.${total.toLocaleString()}`, 190, finalY, { align: 'right' });
-
-        const footerY = 260;
-        doc.setFontSize(9);
+        // FOOTER
+        doc.line(margin, 255, margin + width, 255);
+        doc.setFontSize(8);
+        doc.text("All disputes subject to Chittoor jurisdiction. Goods once sold are not returnable.", margin + width/2, 262, { align: 'center' });
         doc.setTextColor(150);
-        doc.text("Digitally Authorized Invoice • Sai Collections Luxury", 105, footerY, { align: 'center' });
+        doc.text("THIS IS AN AUTO-GENERATED LABEL AND DOES NOT NEED SIGNATURE.", margin + 5, 275);
+        doc.text("Powered By: SAI COLLECTIONS", 185, 275, { align: 'right' });
 
-        doc.setDrawColor(gold[0], gold[1], gold[2]);
-        doc.circle(165, footerY - 15, 12);
-        doc.setFontSize(7);
-        doc.setTextColor(gold[0], gold[1], gold[2]);
-        doc.text("OFFICIAL", 165, footerY - 17, { align: 'center' });
-        doc.text("SEAL", 165, footerY - 13, { align: 'center' });
-
-        doc.save(`Sai_Collections_Invoice_${form.name.replace(/\s+/g, '_')}.pdf`);
         return doc;
       };
 
