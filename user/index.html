@@ -1192,61 +1192,60 @@
               {view === 'dashboard' && user && (
                 <motion.div key="dashboard" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} style={{ maxWidth: '1200px', margin: '40px auto', padding: '0 24px' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px' }}>
-                    {/* PROFILE CARD */}
-                    <div className="glass" style={{ padding: '40px', borderRadius: '32px', textAlign: 'center', height: 'fit-content' }}>
-                      <img src={user.user_metadata?.avatar_url || "https://ui-avatars.com/api/?name="+user.user_metadata?.full_name} style={{ width: '120px', height: '120px', borderRadius: '50%', marginBottom: '24px', border: '3px solid var(--gold)', padding: '5px' }} />
-                      <h2 className="display-font" style={{ fontSize: '32px', marginBottom: '8px' }}>{user.user_metadata?.full_name}</h2>
-                      <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '32px' }}>{user.email}</p>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px' }}>
-                      {/* PROFILE SECTION */}
-                      <div className="glass" style={{ padding: '32px', borderRadius: '32px' }}>
-                        <h2 className="display-font" style={{ fontSize: '28px', marginBottom: '24px' }}>Profile <span style={{ color: 'var(--gold)' }}>Settings</span></h2>
-                        <form onSubmit={(e) => { e.preventDefault(); updateProfile(Object.fromEntries(new FormData(e.target))); }}>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            <div>
-                              <label style={{ fontSize: '11px', fontWeight: '800', color: 'var(--gold)', letterSpacing: '1px', textTransform: 'uppercase' }}>Full Name</label>
-                              <input className="inp-lux" name="name" defaultValue={user?.user_metadata?.full_name || ""} required style={{ marginTop: '8px' }} />
-                            </div>
-                            <div>
-                              <label style={{ fontSize: '11px', fontWeight: '800', color: 'var(--gold)', letterSpacing: '1px', textTransform: 'uppercase' }}>WhatsApp Number</label>
-                              <input className="inp-lux" name="phone" placeholder="91XXXXXXXXXX" defaultValue={user?.user_metadata?.phone || ""} required style={{ marginTop: '8px' }} />
-                            </div>
-                            <button type="submit" className="btn-lux" style={{ marginTop: '10px' }}>Update Profile</button>
-                            <button type="button" className="btn-outline" style={{ border: '1px solid #ff4d4d', color: '#ff4d4d' }} onClick={logout}>Logout</button>
-                          </div>
-                        </form>
+                    {/* PROFILE SETTINGS SECTION */}
+                    <div className="glass" style={{ padding: '32px', borderRadius: '32px', height: 'fit-content' }}>
+                      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                        <img src={user.user_metadata?.avatar_url || "https://ui-avatars.com/api/?name="+user.user_metadata?.full_name} style={{ width: '100px', height: '100px', borderRadius: '50%', marginBottom: '16px', border: '2px solid var(--gold)', padding: '4px' }} />
+                        <h2 className="display-font" style={{ fontSize: '24px' }}>{user.user_metadata?.full_name}</h2>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{user.email}</p>
                       </div>
 
-                      {/* ORDERS SECTION */}
-                      <div>
-                        <h2 className="display-font" style={{ fontSize: '28px', marginBottom: '24px' }}>Order <span style={{ color: 'var(--gold)' }}>History</span></h2>
-                        {userOrders.length === 0 ? (
-                          <div className="glass" style={{ padding: '40px', borderRadius: '24px', textAlign: 'center' }}>
-                            <div style={{ fontSize: '40px', marginBottom: '15px', opacity: 0.2 }}>📜</div>
-                            <p style={{ color: 'var(--text-muted)' }}>No orders found.</p>
+                      <form onSubmit={(e) => { e.preventDefault(); updateProfile(Object.fromEntries(new FormData(e.target))); }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                          <div>
+                            <label style={{ fontSize: '10px', fontWeight: '800', color: 'var(--gold)', letterSpacing: '1px', textTransform: 'uppercase' }}>Full Name</label>
+                            <input className="inp-lux" name="name" defaultValue={user?.user_metadata?.full_name || ""} required style={{ marginTop: '6px' }} />
                           </div>
-                        ) : (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            {userOrders.map(order => (
-                              <div key={order.id} className="glass" style={{ padding: '24px', borderRadius: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div>
-                                  <div style={{ fontSize: '12px', color: 'var(--gold)', fontWeight: '800', marginBottom: '4px' }}>ORDER #{order.id.slice(-6).toUpperCase()}</div>
-                                  <div style={{ fontSize: '16px', fontWeight: '700' }}>{new Date(order.created_at).toLocaleDateString()}</div>
-                                  <div style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '4px' }}>{order.items?.length} items • ₹{(order.total_amount || 0).toLocaleString()}</div>
-                                </div>
-                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                  {order.invoice_url && (
-                                    <button className="btn-lux" style={{ padding: '8px 16px', fontSize: '12px' }} onClick={() => window.open(order.invoice_url, '_blank')}>Invoice ↗</button>
-                                  )}
-                                  <div className="glass" style={{ padding: '8px 16px', borderRadius: '10px', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', color: order.status === 'completed' ? '#2e7d32' : 'var(--gold)' }}>{order.status}</div>
-                                </div>
-                              </div>
-                            ))}
+                          <div>
+                            <label style={{ fontSize: '10px', fontWeight: '800', color: 'var(--gold)', letterSpacing: '1px', textTransform: 'uppercase' }}>WhatsApp Number</label>
+                            <input className="inp-lux" name="phone" placeholder="91XXXXXXXXXX" defaultValue={user?.user_metadata?.phone || ""} required style={{ marginTop: '6px' }} />
                           </div>
-                        )}
-                      </div>
+                          <button type="submit" className="btn-lux" style={{ marginTop: '8px' }}>Save Changes</button>
+                          <button type="button" className="btn-outline" style={{ border: '1px solid #ff4d4d', color: '#ff4d4d' }} onClick={logout}>Logout Account</button>
+                        </div>
+                      </form>
                     </div>
+
+                    {/* ORDERS SECTION */}
+                    <div>
+                      <h2 className="display-font" style={{ fontSize: '28px', marginBottom: '24px' }}>Order <span style={{ color: 'var(--gold)' }}>History</span></h2>
+                      {userOrders.length === 0 ? (
+                        <div className="glass" style={{ padding: '60px', borderRadius: '32px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '48px', marginBottom: '20px', opacity: 0.2 }}>📜</div>
+                          <p style={{ color: 'var(--text-muted)' }}>You haven't placed any orders yet.</p>
+                          <button className="btn-lux" style={{ marginTop: '24px' }} onClick={() => nav('shop')}>Start Shopping</button>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                          {userOrders.map(order => (
+                            <div key={order.id} className="glass" style={{ padding: '24px', borderRadius: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <div>
+                                <div style={{ fontSize: '11px', color: 'var(--gold)', fontWeight: '800', marginBottom: '4px' }}>ORDER #{order.id.slice(-6).toUpperCase()}</div>
+                                <div style={{ fontSize: '16px', fontWeight: '700' }}>{new Date(order.created_at).toLocaleDateString()}</div>
+                                <div style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '4px' }}>{order.items?.length} items • ₹{(order.total_amount || 0).toLocaleString()}</div>
+                              </div>
+                              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                {order.invoice_url && (
+                                  <button className="btn-lux" style={{ padding: '8px 16px', fontSize: '12px' }} onClick={() => window.open(order.invoice_url, '_blank')}>Invoice ↗</button>
+                                )}
+                                <div className="glass" style={{ padding: '8px 16px', borderRadius: '10px', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', color: order.status === 'completed' ? '#2e7d32' : 'var(--gold)' }}>{order.status}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
