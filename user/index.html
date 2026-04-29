@@ -323,20 +323,24 @@
       border-bottom: 0.5px solid rgba(201, 168, 76, 0.1);
     }
 
-    @media (max-width: 1023px) {
-      .desktop-header {
-        padding: 15px 20px;
-      }
+      @media (max-width: 1023px) {
+        .desktop-header {
+          padding: 15px 20px;
+        }
 
-      .header-scrolled {
-        padding: 10px 20px;
-      }
+        .header-scrolled {
+          padding: 10px 20px;
+        }
 
-      .hide-mobile {
-        display: none !important;
+        .hide-mobile {
+          display: none !important;
+        }
+
+        .mob-only {
+          display: block !important;
+        }
       }
-    }
-  </style>
+    </style>
 </head>
 
 <body>
@@ -514,7 +518,15 @@
           style={{ cursor: 'pointer' }}
         >
           <div className="p-img-box glass">
-            {p.images?.[0] ? <img src={p.images[0]} alt={p.name} /> : <div style={{ fontSize: '32px', opacity: 0.1 }}>💎</div>}
+            {p.images?.[0] ? <img src={p.images[0]} alt={p.name} /> : (
+              <div style={{ color: 'var(--gold)', opacity: 0.2 }}>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 3h12l4 6-10 12L2 9l4-6z"></path>
+                  <path d="M11 3l-4 6 5 12 5-12-4-6z"></path>
+                  <path d="M2 9h20"></path>
+                </svg>
+              </div>
+            )}
             {p.discount_perc > 0 && (
               <div style={{ position: 'absolute', top: '8px', left: '8px', background: '#e53935', color: '#fff', fontSize: '9px', fontWeight: '800', padding: '3px 6px', borderRadius: '4px' }}>
                 {p.discount_perc}% OFF
@@ -533,7 +545,10 @@
               <div style={{ fontSize: '12px', color: '#e53935', fontWeight: '700', marginTop: '2px' }}>Save {p.discount_perc}%</div>
             )}
             {p.quantity > 0 && p.quantity <= 5 && (
-              <div style={{ fontSize: '11px', color: '#e53935', fontWeight: '800', marginTop: '4px' }}>🔥 Only {p.quantity} left!</div>
+              <div style={{ fontSize: '11px', color: '#e53935', fontWeight: '800', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c0 10-8 12-8 20 0 0 16 0 16-20s-8-0-8 0z"></path></svg>
+                Only {p.quantity} left!
+              </div>
             )}
             {p.quantity <= 0 && (
               <div style={{ fontSize: '11px', color: '#666', fontWeight: '800', marginTop: '4px' }}>Out of Stock</div>
@@ -574,7 +589,11 @@
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div className="hide-mobile" style={{ position: 'relative', cursor: 'pointer' }} onClick={() => nav('cart')}>
-            <span style={{ fontSize: '22px' }}>👜</span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <path d="M16 10a4 4 0 0 1-8 0"></path>
+            </svg>
             <AnimatePresence>
               {cartCt > 0 && (
                 <motion.span
@@ -598,28 +617,48 @@
           ) : (
             <button className="btn-lux hide-mobile" onClick={onLogin} style={{ padding: '10px 24px' }}>Login</button>
           )}
+          {/* Mobile Login Trigger (Only shown if NOT logged in) */}
+          {!user && (
+            <div className="mob-only" style={{ display: 'none' }}>
+               <button className="btn-lux" onClick={onLogin} style={{ padding: '8px 16px', fontSize: '12px' }}>Login</button>
+            </div>
+          )}
         </div>
       </header>
     );
 
-    const MobileNav = ({ view, nav, cartCt }) => (
-      <div className="mob-nav">
-        {[
-          { id: 'home', icon: '🏠', label: 'Home' },
-          { id: 'shop', icon: '💎', label: 'Shop' },
-          { id: 'cart', icon: '👜', label: 'Bag', count: cartCt },
-          { id: 'wishlist', icon: '♥', label: 'Wish' }
-        ].map(item => (
-          <div key={item.id} className={`nav-item ${view === item.id ? 'active' : ''}`} onClick={() => nav(item.id)}>
-            <div style={{ fontSize: '20px', position: 'relative' }}>
-              {item.icon}
-              {item.count > 0 && <span style={{ position: 'absolute', top: '-8px', right: '-12px', background: 'var(--gold)', color: '#fff', fontSize: '9px', padding: '1px 5px', borderRadius: '10px' }}>{item.count}</span>}
+    const MobileNav = ({ view, nav, cartCt, user, onLogin }) => {
+      const icons = {
+        home: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>,
+        shop: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>,
+        cart: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>,
+        wishlist: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>,
+        user: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      };
+
+      return (
+        <div className="mob-nav">
+          {[
+            { id: 'home', icon: icons.home, label: 'Home' },
+            { id: 'shop', icon: icons.shop, label: 'Shop' },
+            { id: 'cart', icon: icons.cart, label: 'Bag', count: cartCt },
+            { id: 'wishlist', icon: icons.wishlist, label: 'Wish' },
+            { id: user ? 'dashboard' : 'login', icon: icons.user, label: user ? 'Profile' : 'Login' }
+          ].map(item => (
+            <div key={item.id} className={`nav-item ${view === item.id ? 'active' : ''}`} onClick={() => {
+              if (item.id === 'login') onLogin();
+              else nav(item.id);
+            }}>
+              <div style={{ fontSize: '20px', position: 'relative', display: 'flex' }}>
+                {item.icon}
+                {item.count > 0 && <span style={{ position: 'absolute', top: '-8px', right: '-12px', background: 'var(--gold)', color: '#fff', fontSize: '9px', padding: '1px 5px', borderRadius: '10px' }}>{item.count}</span>}
+              </div>
+              <span>{item.label}</span>
             </div>
-            <span>{item.label}</span>
-          </div>
-        ))}
-      </div>
-    );
+          ))}
+        </div>
+      );
+    };
 
     function StoreApp() {
       const [loading, setLoading] = useState(true);
@@ -682,7 +721,7 @@
 
       const logout = async () => {
         await supabase.auth.signOut();
-        showToast("Logged out successfully ✨");
+        showToast("Logged out successfully");
         setView('home');
       };
 
@@ -701,12 +740,12 @@
           const currentQty = ex ? (ex.qty || 1) : 0;
 
           if (currentQty + 1 > (p.quantity || 0)) {
-            showToast(`Only ${p.quantity} units of ${p.name} available! 🕊️`);
+            showToast(`Only ${p.quantity} units of ${p.name} available`);
             return c;
           }
 
           const newCart = ex ? c.map(i => i.id === p.id ? { ...i, qty: (i.qty || 1) + 1 } : i) : [...c, { ...p, qty: 1 }];
-          showToast(`${p.name} added to your bag! ✨`);
+          showToast(`${p.name} added to your bag`);
           return newCart;
         });
       };
@@ -716,7 +755,7 @@
           if (item.id === id) {
             const newQty = (item.qty || 1) + delta;
             if (delta > 0 && newQty > (item.quantity || 0)) {
-              showToast(`Stock limit reached! Only ${item.quantity} available. 💎`);
+              showToast(`Stock limit reached! Only ${item.quantity} available`);
               return item;
             }
             return { ...item, qty: Math.max(1, newQty) };
@@ -851,7 +890,7 @@
 
         window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
         setCart([]); setShowCheckout(false); setView('home');
-        showToast("Order Placed & Invoice Shared! 🕊️");
+        showToast("Order Placed & Invoice Shared!");
       };
 
       const cartCt = cart.reduce((s, i) => s + (i.qty || 1), 0);
@@ -867,7 +906,7 @@
           <AnimatePresence>{loading && <SplashScreen />}</AnimatePresence>
 
           <Header scrolled={scrolled} view={view} nav={nav} cartCt={cartCt} user={user} onLogin={login} />
-          <MobileNav view={view} nav={nav} cartCt={cartCt} />
+          <MobileNav view={view} nav={nav} cartCt={cartCt} user={user} onLogin={login} />
 
           <main style={{ paddingBottom: '100px' }}>
             <AnimatePresence mode="wait">
@@ -885,7 +924,7 @@
                       <div style={{ perspective: '2000px' }}>
                         <motion.h1 
                           className="display-font" 
-                          style={{ fontSize: 'clamp(50px, 12vw, 120px)', fontWeight: '800', lineHeight: 0.9, letterSpacing: '-2px', marginBottom: '40px', display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}
+                          style={{ fontSize: 'clamp(40px, 12vw, 120px)', fontWeight: '800', lineHeight: 0.9, letterSpacing: '-2px', marginBottom: '40px', display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}
                         >
                           {["The", "Art", "of", "Elegance"].map((word, i) => (
                             <motion.span
@@ -907,7 +946,12 @@
                         Discover our curated collection of fine jewellery, where traditional craftsmanship meets modern luxury.
                       </p>
                       <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
-                        <button className="btn-lux" onClick={() => nav('shop')}>Browse Collections <span>✨</span></button>
+                        <button className="btn-lux" onClick={() => nav('shop')}>
+                          Browse Collections 
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: '8px' }}>
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                          </svg>
+                        </button>
                         <button className="btn-outline" onClick={() => nav('shop')}>View New Arrivals</button>
                       </div>
                     </div>
@@ -922,7 +966,7 @@
                       </div>
                       <div style={{ cursor: 'pointer', color: 'var(--gold)', fontWeight: '700', borderBottom: '1px solid var(--gold)' }} onClick={() => nav('shop')}>View All</div>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '30px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '20px' }}>
                       {products.slice(0, 8).map((p, i) => (
                         <ProductCard key={p.id} p={p} index={i} onCart={addCart} onView={(p) => nav('pdp', p)} />
                       ))}
@@ -942,7 +986,7 @@
                       ))}
                     </div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '30px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '20px' }}>
                     {products.map((p, i) => (
                       <ProductCard key={p.id} p={p} index={i} onCart={addCart} onView={(p) => nav('pdp', p)} />
                     ))}
@@ -1122,7 +1166,14 @@
                   className="glass" style={{ padding: '48px', maxWidth: '550px', width: '100%', borderRadius: '40px' }}
                 >
                   <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏰</div>
+                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', color: 'var(--gold)' }}>
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="1" y="3" width="15" height="13"></rect>
+                        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                        <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                        <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                      </svg>
+                    </div>
                     <h2 className="display-font" style={{ fontSize: '36px' }}>Shipping Details</h2>
                     <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Complete your order via WhatsApp</p>
                   </div>
@@ -1135,7 +1186,12 @@
                         {user ? `Ordering as ${user.email}` : "Ordering as Guest (Login for order history)"}
                       </div>
                       <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
-                        <button type="submit" className="btn-lux" style={{ flex: 2 }}>Confirm Order <span>💬</span></button>
+                        <button type="submit" className="btn-lux" style={{ flex: 2, gap: '10px' }}>
+                          Confirm Order 
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                          </svg>
+                        </button>
                         <button type="button" className="btn-outline" style={{ flex: 1 }} onClick={() => setShowCheckout(false)}>Cancel</button>
                       </div>
                     </div>
