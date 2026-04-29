@@ -670,6 +670,7 @@
     };
 
     function StoreApp() {
+      const WHATSAPP_NUMBER = "9441573100";
       const [loading, setLoading] = useState(true);
       const [scrolled, setScrolled] = useState(false);
       const [view, setView] = useState('home');
@@ -979,7 +980,10 @@
           }
         });
 
-        window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+        // Open WhatsApp (using location.href to avoid popup blockers if needed, or window.open)
+        const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+        window.open(waUrl, '_blank');
+        
         setCart([]); setShowCheckout(false); setView('home');
         showToast("Order Placed & Invoice Shared!");
       };
