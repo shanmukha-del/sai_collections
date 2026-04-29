@@ -815,6 +815,18 @@
         doc.setLineWidth(0.5);
         doc.rect(margin, margin, width, 277);
 
+        // LOGO IMAGE (Saibaba Logo)
+        try {
+          doc.addImage('../logo.jpeg', 'JPEG', 140, margin + 5, 40, 40);
+        } catch(e) {
+          // Fallback if image fails
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(28);
+          doc.text("SAI", 140, margin + 25);
+          doc.setFontSize(10);
+          doc.text("COLLECTIONS", 140, margin + 32);
+        }
+
         // TOP SECTION
         doc.line(margin, 65, margin + width, 65);
         doc.line(120, margin, 120, 65);
@@ -903,6 +915,9 @@
         doc.setTextColor(150);
         doc.text("THIS IS AN AUTO-GENERATED LABEL AND DOES NOT NEED SIGNATURE.", margin + 5, 275);
         doc.text("Powered By: SAI COLLECTIONS", 185, 275, { align: 'right' });
+
+        // Auto-download for user
+        doc.save(`Sai_Collections_Invoice_${form.name.replace(/\s+/g, '_')}.pdf`);
 
         return doc;
       };
