@@ -812,44 +812,44 @@
         const margin = 10;
         const width = 190;
         
+        // Main Border
         doc.setLineWidth(0.5);
         doc.rect(margin, margin, width, 277);
 
-        // LOGO IMAGE (Saibaba Logo)
+        // OFFICIAL HEADER
+        doc.setFillColor(0, 0, 0);
+        doc.rect(margin, margin, width, 8, 'F');
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.setTextColor(255, 255, 255);
+        doc.text("TAX INVOICE / SHIPPING LABEL", margin + width/2, margin + 5.5, { align: 'center' });
+        doc.setTextColor(0, 0, 0);
+
+        // TOP SECTION
+        doc.line(margin, 65, margin + width, 65);
+        doc.line(120, margin + 8, 120, 65);
+
+        // Ship To
+        doc.setFontSize(14);
+        doc.text("Ship To", margin + 5, margin + 15);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(12);
+        doc.text(form.name.toUpperCase(), margin + 5, margin + 23);
+        doc.setFontSize(9);
+        const splitAddr = doc.splitTextToSize(form.address, 100);
+        doc.text(splitAddr, margin + 5, margin + 30);
+        doc.setFont("helvetica", "bold");
+        doc.text(`Phone No.: ${form.phone}`, margin + 5, margin + 55);
+
+        // Logo Image (Moved to avoid overlap)
         try {
-          doc.addImage('../logo.jpeg', 'JPEG', 140, margin + 5, 40, 40);
+          doc.addImage('../logo.jpeg', 'JPEG', 135, margin + 12, 45, 45);
         } catch(e) {
-          // Fallback if image fails
-          doc.setFont("helvetica", "bold");
           doc.setFontSize(28);
           doc.text("SAI", 140, margin + 25);
           doc.setFontSize(10);
           doc.text("COLLECTIONS", 140, margin + 32);
         }
-
-        // TOP SECTION
-        doc.line(margin, 65, margin + width, 65);
-        doc.line(120, margin, 120, 65);
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(14);
-        doc.text("Ship To", margin + 5, margin + 10);
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(12);
-        doc.text(form.name.toUpperCase(), margin + 5, margin + 18);
-        doc.setFontSize(9);
-        const splitAddr = doc.splitTextToSize(form.address, 100);
-        doc.text(splitAddr, margin + 5, margin + 25);
-        doc.setFont("helvetica", "bold");
-        doc.text(`Phone No.: ${form.phone}`, margin + 5, margin + 55);
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(28);
-        doc.text("SAI", 140, margin + 25);
-        doc.setFontSize(10);
-        doc.text("COLLECTIONS", 140, margin + 32);
-        doc.setLineWidth(1.5);
-        doc.line(140, margin + 35, 175, margin + 35);
 
         // MIDDLE SECTION
         doc.line(margin, 105, margin + width, 105);
@@ -857,26 +857,27 @@
 
         doc.setFontSize(10);
         doc.setFont("helvetica", "normal");
-        doc.text("Payment:", margin + 5, 75);
+        doc.text("Payment Mode:", margin + 5, 75);
         doc.setFont("helvetica", "bold");
-        doc.text("PREPAID (ONLINE)", margin + 35, 75);
+        doc.text("PREPAID (SUCCESS)", margin + 35, 75);
         doc.setFont("helvetica", "normal");
-        doc.text("ORDER TOTAL:", margin + 5, 85);
+        doc.text("Total Amount:", margin + 5, 85);
         doc.setFont("helvetica", "bold");
         doc.text(`${total.toLocaleString()} INR`, margin + 35, 85);
 
+        // Barcode Placeholder
         doc.setLineWidth(0.2);
-        doc.rect(105, 70, 85, 25);
+        doc.rect(105, 72, 85, 22);
         doc.setFontSize(7);
-        doc.text("|| |||| ||| ||||| || |||| |||| ||| |||| || ||||", 147, 83, { align: 'center' });
-        doc.text(`#SC${Date.now().toString().slice(-8)}`, 147, 88, { align: 'center' });
-        doc.setFontSize(10);
+        doc.text("|| |||| ||| ||||| || |||| |||| ||| |||| || ||||", 147, 82, { align: 'center' });
+        doc.text(`#SC${Date.now().toString().slice(-8)}`, 147, 87, { align: 'center' });
+        doc.setFontSize(9);
         doc.text("Routing Code: AP/CHIT/PEN", 147, 100, { align: 'center' });
 
         // SHIPPED BY SECTION
         doc.line(margin, 155, margin + width, 155);
         doc.setFont("helvetica", "bold");
-        doc.text("Shipped By (If undelivered, return to)", margin + 5, 115);
+        doc.text("Shipped By / Return To:", margin + 5, 115);
         doc.setFont("helvetica", "normal");
         doc.setFontSize(9);
         doc.text("SAI COLLECTIONS LUXURY JEWELLERY", margin + 5, 125);
@@ -885,23 +886,23 @@
         doc.text("GSTIN: 37AAXFS4581C1Z0", margin + 5, 140);
 
         doc.setFont("helvetica", "bold");
-        doc.text(`Order #: ${Date.now().toString().slice(-10)}`, 140, 115);
+        doc.text(`Order ID: #SC${Date.now().toString().slice(-8)}`, 140, 115);
         doc.text(`Date: ${new Date().toLocaleDateString()}`, 140, 123);
 
-        // TABLE
-        doc.setFillColor(240, 240, 240);
+        // PRODUCT TABLE
+        doc.setFillColor(245, 245, 245);
         doc.rect(margin, 155, width, 10, 'F');
         doc.line(margin, 165, margin + width, 165);
         doc.setFont("helvetica", "bold");
-        doc.text("Product Name", margin + 5, 161);
+        doc.text("Product Details", margin + 5, 161);
         doc.text("Qty", margin + 130, 161);
-        doc.text("Price", margin + 150, 161);
+        doc.text("Unit Price", margin + 150, 161);
         doc.text("Total", margin + 175, 161);
 
         doc.setFont("helvetica", "normal");
         let y = 173;
         cart.forEach(item => {
-          doc.text(item.name.substring(0, 50), margin + 5, y);
+          doc.text(item.name.substring(0, 45), margin + 5, y);
           doc.text(item.qty.toString(), margin + 132, y);
           doc.text(item.discount_price.toLocaleString(), margin + 150, y);
           doc.text((item.qty * item.discount_price).toLocaleString(), margin + 175, y);
@@ -911,13 +912,13 @@
         // FOOTER
         doc.line(margin, 255, margin + width, 255);
         doc.setFontSize(8);
-        doc.text("All disputes subject to Chittoor jurisdiction. Goods once sold are not returnable.", margin + width/2, 262, { align: 'center' });
-        doc.setTextColor(150);
-        doc.text("THIS IS AN AUTO-GENERATED LABEL AND DOES NOT NEED SIGNATURE.", margin + 5, 275);
-        doc.text("Powered By: SAI COLLECTIONS", 185, 275, { align: 'right' });
+        doc.text("Terms & Conditions: All disputes are subject to Chittoor jurisdiction. Goods once sold are not returnable.", margin + width/2, 262, { align: 'center' });
+        doc.setTextColor(100);
+        doc.text("THIS IS A COMPUTER GENERATED INVOICE AND DOES NOT REQUIRE A SIGNATURE.", margin + 5, 275);
+        doc.text("Authorized by: SAI COLLECTIONS", 185, 275, { align: 'right' });
 
-        // Auto-download for user
-        doc.save(`Sai_Collections_Invoice_${form.name.replace(/\s+/g, '_')}.pdf`);
+        // Auto-download
+        doc.save(`Invoice_SC_${Date.now().toString().slice(-6)}.pdf`);
 
         return doc;
       };
