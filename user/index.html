@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sai Collections | Exquisite Artisan Jewellery</title>
+
+  <!-- CDNs -->
+  <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.23.2/babel.min.js"></script>
+  <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@200;300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #FCFAF7;
+      --gold: #C9A84C;
+      --gold-dark: #A68A3D;
+      --gold-soft: rgba(201, 168, 76, 0.15);
+      --gold-glow: rgba(201, 168, 76, 0.25);
+      --text: #4A4A4A;
+      --text-muted: #8E8E8E;
+      --glass: rgba(255, 255, 255, 0.7);
+      --glass-border: 0.5px solid rgba(201, 168, 76, 0.2);
+      --shadow-soft: 0 10px 30px rgba(201, 168, 76, 0.1);
+      --shadow-lux: 0 0 25px rgba(201, 168, 76, 0.15);
+      --radius: 24px;
+      --font-display: 'Cormorant Garamond', serif;
+      --font-body: 'Outfit', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1,
+    h2,
+    h3,
+    .display-font {
+      font-family: var(--font-display);
+    }
+
+    /* ── BACKGROUND SYSTEM ── */
+    #mesh-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background:
+        radial-gradient(at 0% 0%, #fff7e6 0, transparent 50%),
+        radial-gradient(at 50% 0%, #fffbf0 0, transparent 50%),
+        radial-gradient(at 100% 0%, #fff5d1 0, transparent 50%),
+        radial-gradient(at 0% 100%, #fff8e8 0, transparent 50%),
+        radial-gradient(at 100% 100%, #fff9eb 0, transparent 50%);
+      z-index: -2;
+      filter: blur(100px);
+      opacity: 0.7;
+    }
+
+    #bokeh-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* ── REUSABLE STYLES ── */
+    .glass {
+      background: var(--glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: var(--glass-border);
+      box-shadow: var(--shadow-lux);
+    }
+
+    .btn-lux {
+      background: var(--gold);
+      color: #fff;
+      border: none;
+      padding: 14px 32px;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+      box-shadow: 0 4px 20px rgba(201, 168, 76, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-lux:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 12px 30px rgba(201, 168, 76, 0.5);
+      background: var(--gold-dark);
+    }
+
+    .btn-lux:active {
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      padding: 12px 30px;
+      border-radius: 40px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-outline:hover {
+      background: var(--gold-soft);
+    }
+
+    .inp-lux {
+      background: rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(201, 168, 76, 0.15);
+      padding: 16px 24px;
+      border-radius: 16px;
+      width: 100%;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 15px;
+      transition: all 0.3s;
+    }
+
+    .inp-lux:focus {
+      outline: none;
+      border-color: var(--gold);
+      background: #fff;
+      box-shadow: 0 0 15px var(--gold-glow);
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes floating {
+      0% {
+        transform: translateY(0px);
+      }
+
+      50% {
+        transform: translateY(-15px);
+      }
+
+      100% {
+        transform: translateY(0px);
+      }
+    }
+
+    .float {
+      animation: floating 4s ease-in-out infinite;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--gold);
+      border-radius: 10px;
+    }
+
+    /* ── PRODUCT CARD ── */
+    .p-card-wrap {
+      position: relative;
+    }
+
+    .p-img-box {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      position: relative;
+      border: 0.5px solid rgba(201, 168, 76, 0.1);
+    }
+
+    .p-img-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      /* Full visibility, no cropping */
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      image-rendering: -webkit-optimize-contrast;
+    }
+
+    .p-card-wrap:hover .p-img-box img {
+      transform: scale(1.05);
+    }
+
+    .p-details {
+      padding: 0 2px;
+      text-align: left;
+    }
+
+    .p-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.2;
+      height: 34px;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      margin-bottom: 4px;
+    }
+
+    .p-price {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .p-badge {
+      font-size: 10px;
+      color: #2e7d32;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    /* ── MOBILE NAV ── */
+    .mob-nav {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 400px;
+      height: 64px;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 32px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0 16px;
+      z-index: 2000;
+      box-shadow: 0 15px 45px rgba(201, 168, 76, 0.25);
+      border: 0.5px solid rgba(201, 168, 76, 0.2);
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.3s;
+    }
+
+    .nav-item.active {
+      color: var(--gold);
+    }
+
+    .nav-item span {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    @media (min-width: 1024px) {
+      .mob-nav {
+        display: none;
+      }
+    }
+
+    .desktop-header {
+      position: sticky;
+      top: 0;
+      z-index: 1500;
+      padding: 20px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.4s;
+    }
+
+    .header-scrolled {
+      background: rgba(252, 250, 247, 0.8);
+      backdrop-filter: blur(15px);
+      padding: 12px 60px;
+      border-bottom: 0.5px solid rgba(201, 168, 76, 0.1);
+    }
+
+    @media (max-width: 1023px) {
+      .desktop-header {
+        padding: 15px 20px;
+      }
+
+      .header-scrolled {
+        padding: 10px 20px;
+      }
+
+      .hide-mobile {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="mesh-bg"></div>
+  <canvas id="bokeh-canvas"></canvas>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useMemo, useCallback } = React;
+    const { motion, AnimatePresence, useScroll, useSpring, useTransform, useMotionValue } = window.Motion;
+
+    /* ── CONFIG ── */
+    const SUPABASE_URL = "https://yuxxkrgrromcmadfmzqo.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1eHhrcmdycm9tY21hZGZtenFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjUxODMsImV4cCI6MjA5MjcwMTE4M30.pEt2rRhfDUaaC9NV8fEpiRrIqVFipDsflfE6xumHZqE";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const WHATSAPP_NUMBER = "919441573100";
+
+    /* ── BOKEH ENGINE ── */
+    const initBokeh = () => {
+      const canvas = document.getElementById('bokeh-canvas');
+      const ctx = canvas.getContext('2d');
+      let w, h, particles = [];
+      const resize = () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; };
+      class Particle {
+        constructor() { this.init(); }
+        init() {
+          this.x = Math.random() * w; this.y = Math.random() * h;
+          this.size = Math.random() * 80 + 20;
+          this.vx = (Math.random() - 0.5) * 0.2; this.vy = (Math.random() - 0.5) * 0.2;
+          this.alpha = Math.random() * 0.08 + 0.02;
+          this.color = `rgba(201, 168, 76, ${this.alpha})`;
+        }
+        draw() {
+          ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fillStyle = this.color; ctx.fill();
+        }
+        update() {
+          this.x += this.vx; this.y += this.vy;
+          if (this.x < -this.size) this.x = w + this.size; if (this.x > w + this.size) this.x = -this.size;
+          if (this.y < -this.size) this.y = h + this.size; if (this.y > h + this.size) this.y = -this.size;
+        }
+      }
+      const create = () => { particles = []; for (let i = 0; i < 15; i++) particles.push(new Particle()); };
+      const loop = () => { ctx.clearRect(0, 0, w, h); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(loop); };
+      window.addEventListener('resize', resize); resize(); create(); loop();
+    };
+
+    /* ── UTILS ── */
+    const readLS = k => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : []; } catch { return []; } };
+
+    /* ── HOOKS ── */
+    const useCountUp = (target, duration = 1500) => {
+      const [count, setCount] = useState(0);
+      useEffect(() => {
+        let start = 0; const end = parseInt(target) || 0; if (start === end) return;
+        let startTime = null;
+        const step = (ts) => {
+          if (!startTime) startTime = ts;
+          const progress = Math.min((ts - startTime) / duration, 1);
+          const easeOut = 1 - Math.pow(1 - progress, 3);
+          setCount(Math.floor(easeOut * (end - start) + start));
+          if (progress < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      }, [target, duration]);
+      return count;
+    };
+
+    /* ── COMPONENTS ── */
+
+    const ParallaxSection = ({ children, offset = ["start end", "end start"] }) => {
+      const ref = useRef(null);
+      const { scrollYProgress } = useScroll({ target: ref, offset });
+      const scale = useTransform(scrollYProgress, [0, 0.4], [0.92, 1]);
+      const opacity = useTransform(scrollYProgress, [0, 0.3], [0, 1]);
+      const y = useTransform(scrollYProgress, [0, 0.4], [50, 0]);
+      return <motion.div ref={ref} style={{ scale, opacity, y }}>{children}</motion.div>;
+    };
+
+    const TiltCard = ({ children, className = "", style = {}, onClick, noHover = false }) => {
+      const x = useMotionValue(0); const y = useMotionValue(0);
+      const mouseX = useSpring(x, { stiffness: 300, damping: 30 });
+      const mouseY = useSpring(y, { stiffness: 300, damping: 30 });
+      const rotateX = useTransform(mouseY, [-0.5, 0.5], [10, -10]);
+      const rotateY = useTransform(mouseX, [-0.5, 0.5], [-10, 10]);
+
+      const handleMove = (e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        x.set((e.clientX - rect.left) / rect.width - 0.5);
+        y.set((e.clientY - rect.top) / rect.height - 0.5);
+      };
+
+      return (
+        <motion.div
+          onMouseMove={handleMove} onMouseLeave={() => { x.set(0); y.set(0); }}
+          onClick={onClick}
+          style={{ rotateX, rotateY, transformStyle: "preserve-3d", cursor: onClick ? 'pointer' : 'default', ...style }}
+          className={`glass ${className}`}
+          whileHover={noHover ? {} : { scale: 1.02 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+        >
+          <div style={{ transform: "translateZ(30px)" }}>{children}</div>
+        </motion.div>
+      );
+    };
+
+    const SplashScreen = () => (
+      <motion.div
+        initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1 }}
+        style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#FCFAF7', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
+      >
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          style={{ textAlign: 'center' }}
+        >
+          <img src="logo.jpeg" alt="Logo" style={{ width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover', marginBottom: '24px', border: '2px solid var(--gold)', padding: '5px', background: '#fff' }} />
+          <div className="display-font" style={{ fontSize: '48px', color: 'var(--gold)', fontWeight: '700', letterSpacing: '-1px' }}>Sai Collections</div>
+          <motion.div
+            initial={{ width: 0 }} animate={{ width: '120px' }}
+            transition={{ duration: 1.5, delay: 0.6 }}
+            style={{ height: '1px', background: 'var(--gold)', margin: '24px auto 0' }}
+          />
+        </motion.div>
+      </motion.div>
+    );
+
+    const ZoomImage = ({ src, alt }) => {
+      const x = useMotionValue(0.5);
+      const y = useMotionValue(0.5);
+      const [isHovered, setIsHovered] = useState(false);
+
+      const handleMouseMove = (e) => {
+        const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+        x.set((e.clientX - left) / width);
+        y.set((e.clientY - top) / height);
+      };
+
+      const originX = useTransform(x, [0, 1], ["0%", "100%"]);
+      const originY = useTransform(y, [0, 1], ["0%", "100%"]);
+
+      return (
+        <div 
+          style={{ width: '100%', height: '100%', overflow: 'hidden', cursor: 'zoom-in', position: 'relative' }}
+          onMouseMove={handleMouseMove}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <motion.img 
+            src={src} alt={alt}
+            style={{ 
+              width: '100%', height: '100%', objectFit: 'contain', 
+              transformOrigin: isHovered ? `${originX.get()} ${originY.get()}` : 'center'
+            }}
+            animate={{ scale: isHovered ? 2.5 : 1 }}
+            transition={{ type: 'spring', stiffness: 150, damping: 25 }}
+          />
+          {isHovered && (
+            <div style={{ position: 'absolute', bottom: '10px', right: '10px', background: 'rgba(0,0,0,0.5)', color: '#fff', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', pointerEvents: 'none' }}>
+              🔍 2.5x Zoom
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    const ProductCard = ({ p, index, onCart, onView }) => {
+      const displayPrice = useCountUp(p.discount_price || 0);
+      return (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }} transition={{ delay: index * 0.05 }}
+          className="p-card-wrap"
+          onClick={() => onView(p)}
+          style={{ cursor: 'pointer' }}
+        >
+          <div className="p-img-box glass">
+            {p.images?.[0] ? <img src={p.images[0]} alt={p.name} /> : <div style={{ fontSize: '32px', opacity: 0.1 }}>💎</div>}
+            {p.discount_perc > 0 && (
+              <div style={{ position: 'absolute', top: '8px', left: '8px', background: '#e53935', color: '#fff', fontSize: '9px', fontWeight: '800', padding: '3px 6px', borderRadius: '4px' }}>
+                {p.discount_perc}% OFF
+              </div>
+            )}
+          </div>
+          <div className="p-details">
+            <div className="p-name">{p.name}</div>
+            <div className="p-price-row" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text)' }}>₹{(displayPrice || 0).toLocaleString()}</span>
+              {(p.actual_price || 0) > (p.discount_price || 0) && (
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)', textDecoration: 'line-through' }}>₹{(p.actual_price || 0).toLocaleString()}</span>
+              )}
+            </div>
+            {(p.discount_perc || 0) > 0 && (
+              <div style={{ fontSize: '12px', color: '#e53935', fontWeight: '700', marginTop: '2px' }}>Save {p.discount_perc}%</div>
+            )}
+            {p.quantity > 0 && p.quantity <= 5 && (
+              <div style={{ fontSize: '11px', color: '#e53935', fontWeight: '800', marginTop: '4px' }}>🔥 Only {p.quantity} left!</div>
+            )}
+            {p.quantity <= 0 && (
+              <div style={{ fontSize: '11px', color: '#666', fontWeight: '800', marginTop: '4px' }}>Out of Stock</div>
+            )}
+            <motion.button
+              whileHover={p.quantity > 0 ? { scale: 1.02 } : {}} whileTap={p.quantity > 0 ? { scale: 0.98 } : {}}
+              className="btn-lux"
+              style={{ width: '100%', marginTop: '10px', borderRadius: '8px', padding: '8px', fontSize: '12px', opacity: p.quantity > 0 ? 1 : 0.5, cursor: p.quantity > 0 ? 'pointer' : 'not-allowed' }}
+              onClick={(e) => { e.stopPropagation(); if (p.quantity > 0) onCart(p); }}
+              disabled={p.quantity <= 0}
+            >
+              {p.quantity > 0 ? 'Add to Bag' : 'Sold Out'}
+            </motion.button>
+          </div>
+        </motion.div>
+      );
+    };
+
+    const Header = ({ scrolled, view, nav, cartCt, user, onLogin }) => (
+      <header className={`desktop-header ${scrolled ? 'header-scrolled' : ''}`}>
+        <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px' }} onClick={() => nav('home')}>
+          <img src="logo.jpeg" alt="Logo" style={{ height: '45px', width: '45px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid var(--gold)' }} />
+          <div className="display-font" style={{ fontSize: '28px', fontWeight: '700', color: 'var(--gold)' }}>Sai Collections</div>
+        </div>
+
+        <div className="hide-mobile" style={{ display: 'flex', gap: '40px' }}>
+          {['home', 'shop', 'wishlist'].map(v => (
+            <motion.div
+              key={v} onClick={() => nav(v)}
+              style={{ cursor: 'pointer', fontSize: '14px', fontWeight: '600', letterSpacing: '1px', textTransform: 'uppercase', position: 'relative', color: view === v ? 'var(--gold)' : 'var(--text)' }}
+              whileHover={{ color: 'var(--gold)' }}
+            >
+              {v}
+              {view === v && <motion.div layoutId="nav-line" style={{ position: 'absolute', bottom: '-8px', left: 0, width: '100%', height: '2px', background: 'var(--gold)', borderRadius: '2px' }} />}
+            </motion.div>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div className="hide-mobile" style={{ position: 'relative', cursor: 'pointer' }} onClick={() => nav('cart')}>
+            <span style={{ fontSize: '22px' }}>👜</span>
+            <AnimatePresence>
+              {cartCt > 0 && (
+                <motion.span
+                  initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+                  style={{ position: 'absolute', top: '-5px', right: '-8px', background: 'var(--gold)', color: '#fff', fontSize: '10px', padding: '2px 6px', borderRadius: '50%', fontWeight: '700' }}
+                >
+                  {cartCt}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </div>
+          
+          {user ? (
+            <div 
+              style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', background: 'var(--gold-soft)', padding: '6px 16px', borderRadius: '30px', border: '1px solid var(--gold-glow)' }}
+              onClick={() => nav('dashboard')}
+            >
+              <img src={user.user_metadata?.avatar_url || "https://ui-avatars.com/api/?name="+user.user_metadata?.full_name} style={{ width: '28px', height: '28px', borderRadius: '50%' }} />
+              <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--gold)' }}>{user.user_metadata?.full_name?.split(' ')[0]}</span>
+            </div>
+          ) : (
+            <button className="btn-lux hide-mobile" onClick={onLogin} style={{ padding: '10px 24px' }}>Login</button>
+          )}
+        </div>
+      </header>
+    );
+
+    const MobileNav = ({ view, nav, cartCt }) => (
+      <div className="mob-nav">
+        {[
+          { id: 'home', icon: '🏠', label: 'Home' },
+          { id: 'shop', icon: '💎', label: 'Shop' },
+          { id: 'cart', icon: '👜', label: 'Bag', count: cartCt },
+          { id: 'wishlist', icon: '♥', label: 'Wish' }
+        ].map(item => (
+          <div key={item.id} className={`nav-item ${view === item.id ? 'active' : ''}`} onClick={() => nav(item.id)}>
+            <div style={{ fontSize: '20px', position: 'relative' }}>
+              {item.icon}
+              {item.count > 0 && <span style={{ position: 'absolute', top: '-8px', right: '-12px', background: 'var(--gold)', color: '#fff', fontSize: '9px', padding: '1px 5px', borderRadius: '10px' }}>{item.count}</span>}
+            </div>
+            <span>{item.label}</span>
+          </div>
+        ))}
+      </div>
+    );
+
+    function StoreApp() {
+      const [loading, setLoading] = useState(true);
+      const [scrolled, setScrolled] = useState(false);
+      const [view, setView] = useState('home');
+      const [products, setProducts] = useState([]);
+      const [categories, setCategories] = useState([]);
+      const [cart, setCart] = useState(() => readLS('sai_cart'));
+      const [selProd, setSelProd] = useState(null);
+      const [activeImg, setActiveImg] = useState(0);
+      const [showCheckout, setShowCheckout] = useState(false);
+      const [toast, setToast] = useState(null);
+
+      const [user, setUser] = useState(null);
+      const [userOrders, setUserOrders] = useState([]);
+
+      useEffect(() => {
+        // Initial Auth Check
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          setUser(session?.user ?? null);
+          if (session?.user) fetchUserOrders(session.user.id);
+        });
+
+        // Listen for Auth Changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+          setUser(session?.user ?? null);
+          if (session?.user) fetchUserOrders(session.user.id);
+          else setUserOrders([]);
+        });
+
+        const loadData = async () => {
+          const { data: prods } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+          const { data: cats } = await supabase.from('categories').select('*').order('name');
+          if (prods) setProducts(prods);
+          if (cats) setCategories(cats);
+        };
+        loadData();
+        initBokeh();
+        const t = setTimeout(() => setLoading(false), 2500);
+        window.addEventListener('scroll', () => setScrolled(window.scrollY > 50));
+        return () => { 
+          subscription.unsubscribe();
+          clearTimeout(t); 
+          window.removeEventListener('scroll', () => { }); 
+        };
+      }, []);
+
+      const fetchUserOrders = async (uid) => {
+        const { data } = await supabase.from('orders').select('*').eq('user_id', uid).order('created_at', { ascending: false });
+        if (data) setUserOrders(data);
+      };
+
+      const login = async () => {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: window.location.href }
+        });
+        if (error) showToast("Login failed: " + error.message);
+      };
+
+      const logout = async () => {
+        await supabase.auth.signOut();
+        showToast("Logged out successfully ✨");
+        setView('home');
+      };
+
+      useEffect(() => {
+        localStorage.setItem('sai_cart', JSON.stringify(cart));
+      }, [cart]);
+
+      const showToast = (msg) => {
+        setToast(msg);
+        setTimeout(() => setToast(null), 3000);
+      };
+
+      const addCart = (p) => {
+        setCart(c => {
+          const ex = c.find(i => i.id === p.id);
+          const currentQty = ex ? (ex.qty || 1) : 0;
+
+          if (currentQty + 1 > (p.quantity || 0)) {
+            showToast(`Only ${p.quantity} units of ${p.name} available! 🕊️`);
+            return c;
+          }
+
+          const newCart = ex ? c.map(i => i.id === p.id ? { ...i, qty: (i.qty || 1) + 1 } : i) : [...c, { ...p, qty: 1 }];
+          showToast(`${p.name} added to your bag! ✨`);
+          return newCart;
+        });
+      };
+
+      const updateCartQty = (id, delta) => {
+        setCart(prev => prev.map(item => {
+          if (item.id === id) {
+            const newQty = (item.qty || 1) + delta;
+            if (delta > 0 && newQty > (item.quantity || 0)) {
+              showToast(`Stock limit reached! Only ${item.quantity} available. 💎`);
+              return item;
+            }
+            return { ...item, qty: Math.max(1, newQty) };
+          }
+          return item;
+        }));
+      };
+
+      const total = useMemo(() => cart.reduce((s, i) => s + (i.discount_price || 0) * (i.qty || 1), 0), [cart]);
+
+      const generateInvoice = (form, cart, total) => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const gold = [201, 168, 76];
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(28);
+        doc.setTextColor(gold[0], gold[1], gold[2]);
+        doc.text("SAI COLLECTIONS", 105, 30, { align: 'center' });
+
+        doc.setFontSize(10);
+        doc.setTextColor(120);
+        doc.text("EXQUISITE ARTISAN LUXURY JEWELLERY", 105, 38, { align: 'center' });
+
+        doc.setDrawColor(gold[0], gold[1], gold[2]);
+        doc.setLineWidth(0.5);
+        doc.line(20, 45, 190, 45);
+
+        doc.setFontSize(11);
+        doc.setTextColor(0);
+        doc.text("DELIVER TO:", 20, 60);
+        doc.setFont("helvetica", "normal");
+        doc.text(`${form.name}`, 20, 68);
+        doc.text(`Phone: ${form.phone}`, 20, 74);
+        doc.text(`${form.address}`, 20, 80, { maxWidth: 100 });
+
+        doc.setFont("helvetica", "bold");
+        doc.text("TAX INVOICE / BILL OF SUPPLY", 190, 60, { align: 'right' });
+        doc.setFont("helvetica", "normal");
+        doc.text(`Date: ${new Date().toLocaleDateString()}`, 190, 68, { align: 'right' });
+        doc.text(`Order ID: #SC${Date.now().toString().slice(-6)}`, 190, 74, { align: 'right' });
+
+        const tableData = cart.map(i => [
+          i.name,
+          `Rs.${(i.discount_price || 0).toLocaleString()}`,
+          i.qty,
+          `Rs.${((i.discount_price || 0) * i.qty).toLocaleString()}`
+        ]);
+
+        doc.autoTable({
+          startY: 95,
+          head: [['Product Description', 'Price', 'Qty', 'Net Amount']],
+          body: tableData,
+          headStyles: { fillColor: gold, textColor: 255, fontStyle: 'bold' },
+          alternateRowStyles: { fillColor: [252, 250, 247] },
+          margin: { left: 20, right: 20 }
+        });
+
+        const finalY = doc.lastAutoTable.finalY + 15;
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(16);
+        doc.text(`GRAND TOTAL: Rs.${total.toLocaleString()}`, 190, finalY, { align: 'right' });
+
+        const footerY = 260;
+        doc.setFontSize(9);
+        doc.setTextColor(150);
+        doc.text("Digitally Authorized Invoice • Sai Collections Luxury", 105, footerY, { align: 'center' });
+
+        doc.setDrawColor(gold[0], gold[1], gold[2]);
+        doc.circle(165, footerY - 15, 12);
+        doc.setFontSize(7);
+        doc.setTextColor(gold[0], gold[1], gold[2]);
+        doc.text("OFFICIAL", 165, footerY - 17, { align: 'center' });
+        doc.text("SEAL", 165, footerY - 13, { align: 'center' });
+
+        doc.save(`Sai_Collections_Invoice_${form.name.replace(/\s+/g, '_')}.pdf`);
+        return doc;
+      };
+
+      const handleWhatsApp = async (form) => {
+        showToast("Processing Order... ⏳");
+        const doc = generateInvoice(form, cart, total);
+        
+        let invoiceUrl = "";
+        try {
+          const pdfBlob = doc.output('blob');
+          const fileName = `invoice_${Date.now()}.pdf`;
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('order-invoices')
+            .upload(fileName, pdfBlob);
+
+          if (uploadData) {
+            const { data: urlData } = supabase.storage
+              .from('order-invoices')
+              .getPublicUrl(fileName);
+            invoiceUrl = urlData.publicUrl;
+          }
+        } catch (err) {
+          console.error("Invoice upload failed:", err);
+        }
+
+        const msg = `👑 *PREMIUM ORDER — Sai Collections*\n\n` +
+          `📦 *Items:* \n${cart.map(i => `• ${i.name} (x${i.qty}) — ₹${((i.discount_price || 0) * i.qty).toLocaleString()}`).join('\n')}\n\n` +
+          `💰 *TOTAL: ₹${total.toLocaleString()}*\n\n` +
+          `👤 *Customer:* ${form.name}\n` +
+          `📍 *Address:* ${form.address}\n` +
+          `📞 *Phone:* ${form.phone}\n` +
+          (invoiceUrl ? `📄 *Invoice:* ${invoiceUrl}\n\n` : `\n`) +
+          `✨ _Please confirm this order._`;
+
+        // Save Order to Supabase
+        await supabase.from('orders').insert({
+          customer_name: form.name,
+          customer_phone: form.phone,
+          customer_email: user?.email || "",
+          user_id: user?.id || null,
+          customer_address: form.address,
+          items: cart,
+          total_amount: total,
+          invoice_url: invoiceUrl
+        });
+
+        if (user) fetchUserOrders(user.id);
+
+        // Decrement Stock
+        cart.forEach(async (item) => {
+          const { data: p } = await supabase.from('products').select('quantity').eq('id', item.id).single();
+          if (p) {
+            await supabase.from('products').update({ quantity: Math.max(0, (p.quantity || 0) - (item.qty || 1)) }).eq('id', item.id);
+          }
+        });
+
+        window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+        setCart([]); setShowCheckout(false); setView('home');
+        showToast("Order Placed & Invoice Shared! 🕊️");
+      };
+
+      const cartCt = cart.reduce((s, i) => s + (i.qty || 1), 0);
+
+      const nav = (v, data) => {
+        if (v === 'pdp') { setSelProd(data); setActiveImg(0); }
+        setView(v);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+
+      return (
+        <div>
+          <AnimatePresence>{loading && <SplashScreen />}</AnimatePresence>
+
+          <Header scrolled={scrolled} view={view} nav={nav} cartCt={cartCt} user={user} onLogin={login} />
+          <MobileNav view={view} nav={nav} cartCt={cartCt} />
+
+          <main style={{ paddingBottom: '100px' }}>
+            <AnimatePresence mode="wait">
+              {view === 'home' && (
+                <motion.div key="home" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  {/* HERO */}
+                  <ParallaxSection>
+                    <div style={{ textAlign: 'center', padding: '120px 24px 80px', maxWidth: '900px', margin: '0 auto' }}>
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1 }}
+                        style={{ display: 'inline-block', border: '1px solid var(--gold)', padding: '6px 16px', borderRadius: '20px', fontSize: '11px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: '32px' }}
+                      >
+                        Est. 2025 • Artisan Crafted
+                      </motion.div>
+                      <div style={{ perspective: '2000px' }}>
+                        <motion.h1 
+                          className="display-font" 
+                          style={{ fontSize: 'clamp(50px, 12vw, 120px)', fontWeight: '800', lineHeight: 0.9, letterSpacing: '-2px', marginBottom: '40px', display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}
+                        >
+                          {["The", "Art", "of", "Elegance"].map((word, i) => (
+                            <motion.span
+                              key={i}
+                              style={{ display: 'inline-block', marginRight: '0.2em', transformStyle: 'preserve-3d', originZ: -100 }}
+                              initial={{ opacity: 0, rotateX: -95, y: 100, z: -200 }}
+                              whileInView={{ opacity: 1, rotateX: 0, y: 0, z: 0 }}
+                              viewport={{ once: true }}
+                              transition={{ duration: 1.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                              whileHover={{ scale: 1.05, rotateY: 10, color: 'var(--gold)', transition: { duration: 0.4 } }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              {word}
+                            </motion.span>
+                          ))}
+                        </motion.h1>
+                      </div>
+                      <p style={{ fontSize: '18px', color: 'var(--text-muted)', maxWidth: '550px', margin: '0 auto 48px', lineHeight: 1.6 }}>
+                        Discover our curated collection of fine jewellery, where traditional craftsmanship meets modern luxury.
+                      </p>
+                      <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
+                        <button className="btn-lux" onClick={() => nav('shop')}>Browse Collections <span>✨</span></button>
+                        <button className="btn-outline" onClick={() => nav('shop')}>View New Arrivals</button>
+                      </div>
+                    </div>
+                  </ParallaxSection>
+
+                  {/* TRENDING SECTION */}
+                  <section style={{ maxWidth: '1200px', margin: '60px auto', padding: '0 24px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '40px' }}>
+                      <div>
+                        <div style={{ color: 'var(--gold)', fontSize: '12px', fontWeight: '800', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '8px' }}>Highlights</div>
+                        <h2 style={{ fontSize: '42px' }}>Trending Pieces</h2>
+                      </div>
+                      <div style={{ cursor: 'pointer', color: 'var(--gold)', fontWeight: '700', borderBottom: '1px solid var(--gold)' }} onClick={() => nav('shop')}>View All</div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '30px' }}>
+                      {products.slice(0, 8).map((p, i) => (
+                        <ProductCard key={p.id} p={p} index={i} onCart={addCart} onView={(p) => nav('pdp', p)} />
+                      ))}
+                    </div>
+                  </section>
+                </motion.div>
+              )}
+
+              {view === 'shop' && (
+                <motion.div key="shop" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} style={{ maxWidth: '1200px', margin: '40px auto', padding: '0 24px' }}>
+                  <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+                    <h1 className="display-font" style={{ fontSize: '56px', marginBottom: '16px' }}>Our Collections</h1>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                      <span className="glass" style={{ padding: '8px 20px', borderRadius: '30px', fontSize: '13px', fontWeight: '600', color: 'var(--gold)', border: '1px solid var(--gold)' }}>All Items</span>
+                      {categories.map(c => (
+                        <span key={c.id} className="glass" style={{ padding: '8px 20px', borderRadius: '30px', fontSize: '13px', fontWeight: '500', opacity: 0.6 }}>{c.name}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '30px' }}>
+                    {products.map((p, i) => (
+                      <ProductCard key={p.id} p={p} index={i} onCart={addCart} onView={(p) => nav('pdp', p)} />
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {view === 'pdp' && selProd && (
+                <motion.div key="pdp" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} style={{ maxWidth: '1100px', margin: '40px auto', padding: '0 24px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '60px', alignItems: 'center' }}>
+                    <div>
+                      <motion.div
+                        layoutId={`img-${selProd.id}`} className="glass"
+                        style={{ borderRadius: '40px', overflow: 'hidden', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', marginBottom: '20px' }}
+                      >
+                        <AnimatePresence mode="wait">
+                          <motion.div
+                            key={activeImg}
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            style={{ width: '100%', height: '100%' }}
+                          >
+                            <ZoomImage 
+                              src={selProd.images?.[activeImg] || selProd.images?.[0]} 
+                              alt={selProd.name} 
+                            />
+                          </motion.div>
+                        </AnimatePresence>
+                      </motion.div>
+                      <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+                        {(selProd.images || []).map((img, idx) => (
+                          <motion.div
+                            key={idx} onClick={() => setActiveImg(idx)}
+                            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                            style={{ width: '80px', height: '80px', borderRadius: '15px', overflow: 'hidden', cursor: 'pointer', border: activeImg === idx ? '2px solid var(--gold)' : '2px solid transparent', transition: 'all 0.3s' }}
+                          >
+                            <img src={img} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                        <div style={{ color: 'var(--gold)', letterSpacing: '4px', textTransform: 'uppercase', fontWeight: '800', fontSize: '12px' }}>{selProd.category}</div>
+                        <div style={{ fontSize: '24px', cursor: 'pointer' }}>♥</div>
+                      </div>
+                      <h1 className="display-font" style={{ fontSize: '64px', marginBottom: '16px', lineHeight: 1 }}>{selProd.name}</h1>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '20px', marginBottom: '32px' }}>
+                        <span style={{ fontSize: '42px', fontWeight: '800', color: 'var(--gold)' }}>₹{(selProd?.discount_price || 0).toLocaleString()}</span>
+                        {selProd.actual_price > selProd.discount_price && (
+                          <span style={{ fontSize: '20px', color: 'var(--text-muted)', textDecoration: 'line-through' }}>₹{(selProd?.actual_price || 0).toLocaleString()}</span>
+                        )}
+                        {selProd.discount_perc > 0 && (
+                          <span style={{ fontSize: '20px', color: '#e53935', fontWeight: '700' }}>{selProd.discount_perc}% OFF</span>
+                        )}
+                      </div>
+
+                      <div className="glass" style={{ padding: '24px', borderRadius: '24px', marginBottom: '40px' }}>
+                        <p style={{ lineHeight: 1.8, color: 'var(--text-muted)', fontSize: '16px' }}>{selProd.description || "A masterpiece of jewellery design, handcrafted with precision and passion. This piece features high-quality materials and stunning aesthetics."}</p>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '16px' }}>
+                        <button className="btn-lux" style={{ flex: 2, padding: '20px' }} onClick={() => addCart(selProd)}>Add To Bag <span>👜</span></button>
+                        <button className="btn-outline" style={{ flex: 1 }} onClick={() => nav('shop')}>Go Back</button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {view === 'cart' && (
+                <motion.div key="cart" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ maxWidth: '1200px', margin: '40px auto', padding: '0 24px' }}>
+                  <h1 className="display-font" style={{ fontSize: '56px', marginBottom: '48px', textAlign: 'center' }}>My Shopping Bag</h1>
+                  {cart.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '100px 24px' }}>
+                      <div style={{ fontSize: '80px', marginBottom: '32px', opacity: 0.2 }}>👜</div>
+                      <h2 style={{ fontSize: '32px', marginBottom: '16px' }}>Your bag is empty</h2>
+                      <p style={{ color: 'var(--text-muted)', marginBottom: '40px' }}>Looks like you haven't added any pieces yet.</p>
+                      <button className="btn-lux" style={{ margin: '0 auto' }} onClick={() => nav('shop')}>Start Shopping</button>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '48px', alignItems: 'start' }}>
+                      <div className="glass" style={{ padding: '32px', borderRadius: '32px' }}>
+                        {cart.map(item => (
+                          <div key={item.id} style={{ display: 'flex', gap: '24px', padding: '20px 0', borderBottom: '0.5px solid rgba(201,168,76,0.1)', alignItems: 'center' }}>
+                            <div style={{ width: '100px', height: '100px', borderRadius: '20px', overflow: 'hidden', background: '#fff', flexShrink: 0 }}>
+                              <img src={item.images?.[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '6px' }}>{item.name}</div>
+                              <div style={{ color: 'var(--gold)', fontWeight: '700', fontSize: '18px' }}>₹{(item.discount_price || 0).toLocaleString()}</div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginTop: '16px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', background: 'rgba(255,255,255,0.5)', borderRadius: '12px', padding: '4px 12px' }}>
+                                  <button style={{ border: 'none', background: 'none', fontSize: '18px', cursor: 'pointer', color: 'var(--gold)' }} onClick={() => updateCartQty(item.id, -1)}>−</button>
+                                  <span style={{ fontWeight: '700', fontSize: '14px', width: '20px', textAlign: 'center' }}>{item.qty || 1}</span>
+                                  <button style={{ border: 'none', background: 'none', fontSize: '18px', cursor: 'pointer', color: 'var(--gold)' }} onClick={() => updateCartQty(item.id, 1)}>+</button>
+                                </div>
+                                <button style={{ border: 'none', background: 'none', color: '#ff4d4d', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', cursor: 'pointer' }} onClick={() => setCart(cart.filter(x => x.id !== item.id))}>Remove</button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="glass" style={{ padding: '40px', borderRadius: '32px', position: 'sticky', top: '100px' }}>
+                        <h3 style={{ fontSize: '28px', marginBottom: '32px' }}>Order Summary</h3>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px', color: 'var(--text-muted)' }}>
+                          <span>Subtotal</span><span>₹{(total || 0).toLocaleString()}</span>
+                        </div>
+                        <div style={{ height: '1px', background: 'var(--gold-soft)', marginBottom: '24px' }}></div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '28px', fontWeight: '700', marginBottom: '40px' }}>
+                          <span className="display-font">Total</span><span style={{ color: 'var(--gold)' }}>₹{(total || 0).toLocaleString()}</span>
+                        </div>
+                        <button className="btn-lux" style={{ width: '100%', padding: '20px' }} onClick={() => setShowCheckout(true)}>Proceed to Checkout 🕊️</button>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+              {view === 'dashboard' && user && (
+                <motion.div key="dashboard" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} style={{ maxWidth: '1200px', margin: '40px auto', padding: '0 24px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px' }}>
+                    {/* PROFILE CARD */}
+                    <div className="glass" style={{ padding: '40px', borderRadius: '32px', textAlign: 'center', height: 'fit-content' }}>
+                      <img src={user.user_metadata?.avatar_url || "https://ui-avatars.com/api/?name="+user.user_metadata?.full_name} style={{ width: '120px', height: '120px', borderRadius: '50%', marginBottom: '24px', border: '3px solid var(--gold)', padding: '5px' }} />
+                      <h2 className="display-font" style={{ fontSize: '32px', marginBottom: '8px' }}>{user.user_metadata?.full_name}</h2>
+                      <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '32px' }}>{user.email}</p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <button className="btn-lux" style={{ width: '100%' }} onClick={() => nav('shop')}>Continue Shopping</button>
+                        <button className="btn-outline" style={{ width: '100%', border: '1px solid #ff4d4d', color: '#ff4d4d' }} onClick={logout}>Logout Account</button>
+                      </div>
+                    </div>
+
+                    {/* ORDER HISTORY */}
+                    <div style={{ flex: 2 }}>
+                      <h3 className="display-font" style={{ fontSize: '36px', marginBottom: '32px' }}>My Orders</h3>
+                      {userOrders.length === 0 ? (
+                        <div className="glass" style={{ padding: '60px', borderRadius: '32px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '48px', marginBottom: '20px', opacity: 0.2 }}>📜</div>
+                          <p style={{ color: 'var(--text-muted)' }}>You haven't placed any orders yet.</p>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                          {userOrders.map(order => (
+                            <div key={order.id} className="glass" style={{ padding: '24px', borderRadius: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <div>
+                                <div style={{ fontSize: '12px', color: 'var(--gold)', fontWeight: '800', marginBottom: '4px' }}>ORDER #{order.id.slice(-6).toUpperCase()}</div>
+                                <div style={{ fontSize: '16px', fontWeight: '700' }}>{new Date(order.created_at).toLocaleDateString()}</div>
+                                <div style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '4px' }}>{order.items?.length} items • ₹{(order.total_amount || 0).toLocaleString()}</div>
+                              </div>
+                              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                {order.invoice_url && (
+                                  <button className="btn-lux" style={{ padding: '8px 16px', fontSize: '12px' }} onClick={() => window.open(order.invoice_url, '_blank')}>Invoice ↗</button>
+                                )}
+                                <div className="glass" style={{ padding: '8px 16px', borderRadius: '10px', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', color: order.status === 'completed' ? '#2e7d32' : 'var(--gold)' }}>{order.status}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </main>
+
+          {/* CHECKOUT MODAL */}
+          <AnimatePresence>
+            {showCheckout && (
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                style={{ position: 'fixed', inset: 0, zIndex: 3000, background: 'rgba(252,250,247,0.8)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+              >
+                <motion.div
+                  initial={{ scale: 0.9, y: 50, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.9, y: 50, opacity: 0 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                  className="glass" style={{ padding: '48px', maxWidth: '550px', width: '100%', borderRadius: '40px' }}
+                >
+                  <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏰</div>
+                    <h2 className="display-font" style={{ fontSize: '36px' }}>Shipping Details</h2>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Complete your order via WhatsApp</p>
+                  </div>
+                  <form onSubmit={(e) => { e.preventDefault(); handleWhatsApp(Object.fromEntries(new FormData(e.target))); }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <input className="inp-lux" name="name" placeholder="Full Name" defaultValue={user?.user_metadata?.full_name || ""} required />
+                      <input className="inp-lux" name="phone" placeholder="WhatsApp Number" type="tel" required />
+                      <textarea className="inp-lux" name="address" placeholder="Full Delivery Address" rows="4" required />
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center' }}>
+                        {user ? `Ordering as ${user.email}` : "Ordering as Guest (Login for order history)"}
+                      </div>
+                      <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
+                        <button type="submit" className="btn-lux" style={{ flex: 2 }}>Confirm Order <span>💬</span></button>
+                        <button type="button" className="btn-outline" style={{ flex: 1 }} onClick={() => setShowCheckout(false)}>Cancel</button>
+                      </div>
+                    </div>
+                  </form>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* TOAST */}
+          <AnimatePresence>
+            {toast && (
+              <motion.div
+                initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }}
+                style={{ position: 'fixed', bottom: '100px', left: '24px', zIndex: 4000 }}
+              >
+                <div className="glass" style={{ padding: '16px 32px', borderRadius: '40px', border: '1px solid var(--gold)', color: 'var(--gold)', fontWeight: '700', fontSize: '14px', boxShadow: '0 10px 40px rgba(201,168,76,0.3)' }}>
+                  {toast}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <footer style={{ background: 'var(--bg)', padding: '100px 24px 80px', borderTop: '0.5px solid var(--gold-soft)', textAlign: 'center' }}>
+            <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', marginBottom: '30px' }}>
+                <img src="logo.jpeg" style={{ width: '50px', height: '50px', borderRadius: '50%', border: '1.5px solid var(--gold)', objectFit: 'cover' }} />
+                <div className="display-font" style={{ fontSize: '36px', color: 'var(--gold)', fontWeight: '700' }}>SAI COLLECTIONS</div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '40px', marginBottom: '60px', textAlign: 'center' }}>
+                <div>
+                  <div style={{ color: 'var(--gold)', fontSize: '11px', fontWeight: '800', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '15px' }}>Contact Details</div>
+                  <div style={{ fontSize: '18px', fontWeight: '700', marginBottom: '5px' }}>B. Devarajulu</div>
+                  <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>+91 9441573100</div>
+                  <div style={{ fontSize: '10px', color: 'var(--gold)', marginTop: '4px', fontWeight: '700' }}>(WhatsApp Only)</div>
+                </div>
+                <div>
+                  <div style={{ color: 'var(--gold)', fontSize: '11px', fontWeight: '800', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '15px' }}>Our Promise</div>
+                  <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text)' }}>6 Months Warranty</div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '5px' }}>On Every Single Product</div>
+                </div>
+                <div>
+                  <div style={{ color: 'var(--gold)', fontSize: '11px', fontWeight: '800', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '15px' }}>Visit Us</div>
+                  <address style={{ fontStyle: 'normal', fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+                    Penumur, Penumur (MD), <br/>
+                    Chittoor (DT), Andhra Pradesh, <br/>
+                    517126, India
+                  </address>
+                </div>
+              </div>
+
+              <div style={{ borderTop: '0.5px solid rgba(201,168,76,0.1)', paddingTop: '40px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '1px', marginBottom: '8px' }}>
+                  © 2025 SAI COLLECTIONS LUXURY. ALL RIGHTS RESERVED.
+                </div>
+                <div style={{ fontSize: '10px', color: 'var(--gold)', fontWeight: '800', letterSpacing: '2px', textTransform: 'uppercase', opacity: 0.8 }}>
+                  DESIGNED & DEVELOPED BY APEXCODE NETWORK SOLUTIONS
+                </div>
+              </div>
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<StoreApp />);
+  </script>
+</body>
+
+</html>

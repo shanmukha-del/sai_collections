@@ -1,0 +1,3 @@
+# Ignore sensitive data
+supabase data.txt
+.vscode/

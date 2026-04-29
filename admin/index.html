@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sai Collections — Admin Ivory Luxury</title>
+  
+  <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.23.2/babel.min.js"></script>
+  <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@200;300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #FCFAF7;
+      --gold: #C9A84C;
+      --gold-soft: rgba(201, 168, 76, 0.12);
+      --gold-glow: rgba(201, 168, 76, 0.25);
+      --text: #4A4A4A;
+      --text-muted: #8E8E8E;
+      --glass: rgba(255, 255, 255, 0.65);
+      --glass-border: 0.5px solid rgba(201, 168, 76, 0.25);
+      --shadow-lux: 0 0 25px rgba(201, 168, 76, 0.15);
+      --radius: 20px;
+      --font-display: 'Cormorant Garamond', serif;
+      --font-body: 'Outfit', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    h1, h2, h3, .display-font { font-family: var(--font-display); }
+
+    /* ── BACKGROUND ── */
+    #mesh-bg {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: 
+        radial-gradient(at 0% 0%, #fff7e6 0, transparent 50%),
+        radial-gradient(at 50% 0%, #fffbf0 0, transparent 50%),
+        radial-gradient(at 100% 0%, #fff5d1 0, transparent 50%),
+        radial-gradient(at 0% 100%, #fff8e8 0, transparent 50%),
+        radial-gradient(at 100% 100%, #fff9eb 0, transparent 50%);
+      z-index: -2;
+      filter: blur(100px);
+      opacity: 0.8;
+    }
+
+    #bokeh-canvas { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+
+    .glass {
+      background: var(--glass);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: var(--glass-border);
+      box-shadow: var(--shadow-lux);
+    }
+
+    .btn-lux {
+      background: var(--gold);
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 40px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(201, 168, 76, 0.3);
+      transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+      font-size: 13px;
+      letter-spacing: 0.5px;
+    }
+    .btn-lux:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(201, 168, 76, 0.45); }
+
+    .inp-lux {
+      background: rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(201, 168, 76, 0.15);
+      padding: 14px 20px;
+      border-radius: 14px;
+      width: 100%;
+      color: var(--text);
+      font-family: var(--font-body);
+      transition: all 0.3s;
+    }
+    .inp-lux:focus { outline: none; border-color: var(--gold); background: #fff; box-shadow: 0 0 15px var(--gold-glow); }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
+
+    /* ── TABLE ── */
+    table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
+    th { text-align: left; padding: 12px 20px; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); }
+    td { padding: 20px; background: rgba(255, 255, 255, 0.4); border-top: 0.5px solid rgba(201, 168, 76, 0.1); border-bottom: 0.5px solid rgba(201, 168, 76, 0.1); }
+    tr td:first-child { border-left: 0.5px solid rgba(201, 168, 76, 0.1); border-top-left-radius: 15px; border-bottom-left-radius: 15px; }
+    tr td:last-child { border-right: 0.5px solid rgba(201, 168, 76, 0.1); border-top-right-radius: 15px; border-bottom-right-radius: 15px; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      position: fixed; left: 0; top: 0; bottom: 0; width: 280px;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(20px);
+      border-right: 0.5px solid rgba(201, 168, 76, 0.2);
+      padding: 40px 24px;
+      display: flex; flex-direction: column; gap: 40px;
+      z-index: 1000;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 20px; border-radius: 15px;
+      cursor: pointer; transition: all 0.3s;
+      color: var(--text-muted); font-weight: 500;
+    }
+    .nav-item.active { background: var(--gold-soft); color: var(--gold); font-weight: 600; }
+    .nav-item:hover:not(.active) { background: rgba(255,255,255,0.5); transform: translateX(5px); }
+
+    @media (max-width: 1023px) {
+      .sidebar { width: 100%; height: auto; top: auto; bottom: 0; flex-direction: row; padding: 10px; gap: 10px; justify-content: space-around; border-right: none; border-top: 0.5px solid rgba(201, 168, 76, 0.2); border-radius: 30px 30px 0 0; }
+      .nav-item { padding: 10px; flex-direction: column; gap: 4px; border-radius: 10px; }
+      .nav-item span { font-size: 10px; }
+      .hide-mobile { display: none !important; }
+      .main-content { margin-left: 0 !important; padding: 20px !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="mesh-bg"></div>
+  <canvas id="bokeh-canvas"></canvas>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useMemo } = React;
+    const { motion, AnimatePresence, useScroll, useSpring, useTransform, useMotionValue } = window.Motion;
+
+    /* ── BOKEH ENGINE ── */
+    const initBokeh = () => {
+      const canvas = document.getElementById('bokeh-canvas');
+      const ctx = canvas.getContext('2d');
+      let w, h, particles = [];
+      const resize = () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; };
+      class Particle {
+        constructor() { this.init(); }
+        init() {
+          this.x = Math.random() * w; this.y = Math.random() * h;
+          this.size = Math.random() * 60 + 20;
+          this.vx = (Math.random() - 0.5) * 0.15; this.vy = (Math.random() - 0.5) * 0.15;
+          this.alpha = Math.random() * 0.08 + 0.03;
+        }
+        draw() {
+          ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(201, 168, 76, ${this.alpha})`; ctx.fill();
+        }
+        update() {
+          this.x += this.vx; this.y += this.vy;
+          if (this.x < -this.size) this.x = w + this.size; if (this.x > w + this.size) this.x = -this.size;
+          if (this.y < -this.size) this.y = h + this.size; if (this.y > h + this.size) this.y = -this.size;
+        }
+      }
+      const create = () => { particles = []; for (let i = 0; i < 15; i++) particles.push(new Particle()); };
+      const loop = () => { ctx.clearRect(0, 0, w, h); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(loop); };
+      window.addEventListener('resize', resize); resize(); create(); loop();
+    };
+
+    /* ── UTILS ── */
+    /* ── CONFIG ── */
+    const SUPABASE_URL = "https://yuxxkrgrromcmadfmzqo.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1eHhrcmdycm9tY21hZGZtenFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjUxODMsImV4cCI6MjA5MjcwMTE4M30.pEt2rRhfDUaaC9NV8fEpiRrIqVFipDsflfE6xumHZqE";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    /* ── UTILS ── */
+    const readLS = k => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : []; } catch { return []; } };
+    const writeLS = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+
+    const uploadImage = async (file) => {
+      const fileName = `${Date.now()}-${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('product-images')
+        .upload(fileName, file);
+      
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(fileName);
+      return publicUrl;
+    };
+
+    /* ── HOOKS ── */
+    const useCountUp = (target, duration = 2000) => {
+      const [count, setCount] = useState(0);
+      useEffect(() => {
+        let startTime = null;
+        const step = (ts) => {
+          if (!startTime) startTime = ts;
+          const progress = Math.min((ts - startTime) / duration, 1);
+          setCount(Math.floor(progress * target));
+          if (progress < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      }, [target]);
+      return count;
+    };
+
+    const StatCard = ({ label, val, icon, isCurrency }) => {
+      const count = useCountUp(val);
+      return (
+        <TiltCard style={{ padding: '30px', borderRadius: '24px' }}>
+          <div style={{ fontSize: '32px', marginBottom: '15px' }}>{icon}</div>
+          <div style={{ color: 'var(--text-muted)', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '10px' }}>{label}</div>
+          <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--gold)' }}>
+            {isCurrency ? '₹' : ''}{count.toLocaleString()}
+          </div>
+        </TiltCard>
+      );
+    };
+
+    const TiltCard = ({ children, style = {} }) => {
+      const x = useMotionValue(0); const y = useMotionValue(0);
+      const mouseX = useSpring(x, { stiffness: 300, damping: 30 });
+      const mouseY = useSpring(y, { stiffness: 300, damping: 30 });
+      const rotateX = useTransform(mouseY, [-0.5, 0.5], [10, -10]);
+      const rotateY = useTransform(mouseX, [-0.5, 0.5], [-10, 10]);
+      return (
+        <motion.div
+          onMouseMove={(e) => { const r = e.currentTarget.getBoundingClientRect(); x.set((e.clientX - r.left) / r.width - 0.5); y.set((e.clientY - r.top) / r.height - 0.5); }}
+          onMouseLeave={() => { x.set(0); y.set(0); }}
+          style={{ rotateX, rotateY, transformStyle: "preserve-3d", ...style }}
+          className="glass"
+        >
+          <div style={{ transform: "translateZ(20px)" }}>{children}</div>
+        </motion.div>
+      );
+    };
+
+    /* ── ADMIN APP ── */
+    function AdminApp() {
+      const [view, setView] = useState('dashboard');
+      const [products, setProducts] = useState([]);
+      const [categories, setCategories] = useState([]);
+      const [orders, setOrders] = useState([]);
+      const [showForm, setShowForm] = useState(false);
+      const [editProd, setEditProd] = useState(null);
+      const [tempImages, setTempImages] = useState([]);
+      const [pricing, setPricing] = useState({ actual: 0, discount: 0 });
+
+      useEffect(() => {
+        const loadData = async () => {
+          const { data: prods } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+          const { data: cats } = await supabase.from('categories').select('*').order('name');
+          const { data: ords } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+          if (prods) setProducts(prods);
+          if (cats) setCategories(cats);
+          if (ords) setOrders(ords);
+        };
+        loadData();
+        initBokeh();
+      }, []);
+
+      useEffect(() => {
+        if(showForm) {
+          setTempImages(editProd?.images || []);
+          setPricing({ actual: editProd?.actual_price || 0, discount: editProd?.discount_price || 0 });
+        }
+      }, [showForm, editProd]);
+
+      const saveProduct = async (p) => {
+        const { error } = await supabase.from('products').upsert(p);
+        if (error) alert(error.message);
+        else {
+          const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+          setProducts(data);
+        }
+      };
+
+      const deleteProduct = async (id) => { 
+        if(confirm("Delete this piece?")) {
+          const { error } = await supabase.from('products').delete().eq('id', id);
+          if (error) alert(error.message);
+          else setProducts(products.filter(p => p.id !== id));
+        }
+      };
+
+      const saveCategory = async (name) => {
+        const { error } = await supabase.from('categories').insert([{ name }]);
+        if (error) alert(error.message);
+        else {
+          const { data } = await supabase.from('categories').select('*').order('name');
+          if(data) setCategories(data);
+        }
+      };
+
+      const deleteCategory = async (id) => {
+        if(confirm("Delete this category? Pieces in this category won't be deleted but will lose their filter.")) {
+          const { error } = await supabase.from('categories').delete().eq('id', id);
+          if (error) alert(error.message);
+          else setCategories(categories.filter(c => c.id !== id));
+        }
+      };
+
+      const totalRevenue = orders.reduce((s, o) => s + (parseFloat(o.total_amount) || 0), 0);
+
+      return (
+        <div>
+          <div className="sidebar">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '40px' }}>
+              <img src="logo.jpeg" alt="Logo" style={{ height: '45px', width: '45px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid var(--gold)' }} />
+              <div className="display-font" style={{ fontSize: '24px', color: 'var(--gold)', fontWeight: '700' }}>Sai Admin</div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {[
+                { id: 'dashboard', icon: '📊', label: 'Overview' },
+                { id: 'inventory', icon: '💎', label: 'Inventory' },
+                { id: 'categories', icon: '📁', label: 'Categories' },
+                { id: 'orders', icon: '📜', label: 'Orders' }
+              ].map((item, i) => (
+                <motion.div
+                  key={item.id} className={`nav-item ${view === item.id ? 'active' : ''}`} onClick={() => setView(item.id)}
+                  initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}
+                >
+                  <span style={{ fontSize: '18px' }}>{item.icon}</span>
+                  <span className="hide-mobile">{item.label}</span>
+                </motion.div>
+              ))}
+            </div>
+            <div style={{ marginTop: 'auto' }}>
+              <button className="btn-lux" style={{ width: '100%' }} onClick={() => window.open('/', '_blank')}>Visit Store ↗</button>
+            </div>
+          </div>
+
+          <main className="main-content" style={{ marginLeft: '280px', padding: '60px' }}>
+            <AnimatePresence mode="wait">
+              {view === 'dashboard' && (
+                <motion.div key="dash" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                  <h1 className="display-font" style={{ fontSize: '48px', marginBottom: '40px' }}>Management <span style={{ color: 'var(--gold)' }}>Overview</span></h1>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '30px', marginBottom: '60px' }}>
+                    <StatCard label="Total Pieces" val={products.length} icon="💎" />
+                    <StatCard label="Total Orders" val={orders.length} icon="📜" />
+                    <StatCard label="Total Revenue" val={totalRevenue} icon="💰" isCurrency={true} />
+                  </div>
+                </motion.div>
+              )}
+
+              {view === 'inventory' && (
+                <motion.div key="inv" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
+                    <h1 className="display-font" style={{ fontSize: '48px' }}>Jewellery <span style={{ color: 'var(--gold)' }}>Inventory</span></h1>
+                    <button className="btn-lux" onClick={() => { setEditProd(null); setShowForm(true); }}>Add New Piece +</button>
+                  </div>
+                  <div className="glass" style={{ padding: '30px', borderRadius: '24px', overflowX: 'auto' }}>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Preview</th>
+                          <th>Product Name</th>
+                          <th>Category</th>
+                          <th>Stock</th>
+                          <th>Price</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {products.map((p, i) => (
+                          <motion.tr key={p.id} initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
+                            <td style={{ width: '80px' }}>
+                              <img src={p.images?.[0]} style={{ width: '60px', height: '60px', borderRadius: '10px', objectFit: 'cover', background: '#fff' }} />
+                            </td>
+                            <td>
+                              <div style={{ fontWeight: '700' }}>{p.name}</div>
+                            </td>
+                            <td><span className="glass" style={{ padding: '4px 12px', borderRadius: '10px', fontSize: '11px', color: 'var(--gold)', fontWeight: '600' }}>{p.category}</span></td>
+                            <td>
+                              <div style={{ fontWeight: '600', color: p.quantity <= 5 ? '#e53935' : 'inherit' }}>
+                                {p.quantity || 0} Units
+                              </div>
+                            </td>
+                            <td><div style={{ fontWeight: '700' }}>₹{(p.discount_price || 0).toLocaleString()}</div></td>
+                            <td>
+                              <div style={{ display: 'flex', gap: '10px' }}>
+                                <button style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '18px' }} onClick={() => { setEditProd(p); setShowForm(true); }}>✏️</button>
+                                <button style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '18px' }} onClick={() => deleteProduct(p.id)}>🗑️</button>
+                              </div>
+                            </td>
+                          </motion.tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </motion.div>
+              )}
+
+              {view === 'categories' && (
+                <motion.div key="cats" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
+                    <h1 className="display-font" style={{ fontSize: '48px' }}>Product <span style={{ color: 'var(--gold)' }}>Categories</span></h1>
+                    <button className="btn-lux" onClick={() => {
+                      const name = prompt("New category name:");
+                      if(name) saveCategory(name);
+                    }}>Add Category +</button>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '20px' }}>
+                    {categories.map((c, i) => (
+                      <motion.div key={c.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1 }} className="glass" style={{ padding: '30px', borderRadius: '24px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '32px', marginBottom: '15px' }}>📁</div>
+                        <div style={{ fontWeight: '600', marginBottom: '20px', fontSize: '18px' }}>{c.name}</div>
+                        <button className="btn-lux" style={{ width: '100%', background: '#ff4d4d' }} onClick={() => deleteCategory(c.id)}>Remove Category</button>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {view === 'orders' && (
+                <motion.div key="orders" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <h1 className="display-font" style={{ fontSize: '48px', marginBottom: '40px' }}>Customer <span style={{ color: 'var(--gold)' }}>Orders</span></h1>
+                  <div className="glass" style={{ padding: '30px', borderRadius: '24px', overflowX: 'auto' }}>
+                    {orders.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '60px' }}>
+                        <div style={{ fontSize: '64px', marginBottom: '24px', opacity: 0.2 }}>📜</div>
+                        <h3>No orders yet.</h3>
+                      </div>
+                    ) : (
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Date</th>
+                            <th>Customer</th>
+                            <th>Total</th>
+                            <th>Items</th>
+                            <th>Invoice</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {orders.map((o, i) => (
+                            <motion.tr key={o.id} initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
+                              <td>{new Date(o.created_at).toLocaleDateString()}</td>
+                              <td>
+                                <div style={{ fontWeight: '700' }}>{o.customer_name}</div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{o.customer_phone}</div>
+                              </td>
+                              <td><div style={{ fontWeight: '700', color: 'var(--gold)' }}>₹{(o.total_amount || 0).toLocaleString()}</div></td>
+                              <td>{o.items?.length || 0} pieces</td>
+                              <td>
+                                {o.invoice_url ? (
+                                  <button className="btn-lux" style={{ padding: '6px 12px', fontSize: '10px' }} onClick={() => window.open(o.invoice_url, '_blank')}>View PDF ↗</button>
+                                ) : <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>No Link</span>}
+                              </td>
+                            </motion.tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </main>
+
+          {/* ADD/EDIT MODAL */}
+          <AnimatePresence>
+            {showForm && (
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(252,250,247,0.85)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+              >
+                <motion.div
+                  initial={{ scale: 0.9, y: 50 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 50 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                  className="glass" style={{ padding: '40px', maxWidth: '800px', width: '100%', borderRadius: '30px', maxHeight: '90vh', overflowY: 'auto' }}
+                >
+                  <h2 className="display-font" style={{ fontSize: '36px', marginBottom: '30px' }}>{editProd ? 'Refine Piece' : 'New Creation'}</h2>
+                  <form onSubmit={async (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target);
+                    const data = Object.fromEntries(formData);
+                    const actual = parseInt(data.actualPrice) || 0;
+                    const discount = parseInt(data.discountPrice) || 0;
+                    const perc = actual > 0 ? Math.round(((actual - discount) / actual) * 100) : 0;
+                    
+                    const newP = { 
+                      id: editProd?.id || undefined, 
+                      name: data.name,
+                      category: data.category,
+                      actual_price: actual,
+                      discount_price: discount,
+                      discount_perc: perc,
+                      quantity: parseInt(data.quantity) || 0,
+                      description: data.description,
+                      images: tempImages 
+                    };
+                    saveProduct(newP);
+                    setShowForm(false);
+                  }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                      <div><label style={{ fontSize: '11px', letterSpacing: '1px' }}>NAME</label><input className="inp-lux" name="name" defaultValue={editProd?.name} required /></div>
+                      <div><label style={{ fontSize: '11px', letterSpacing: '1px' }}>CATEGORY</label>
+                        <select className="inp-lux" name="category" defaultValue={editProd?.category}>
+                          {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                        </select>
+                      </div>
+                      <div><label style={{ fontSize: '11px', letterSpacing: '1px' }}>ACTUAL PRICE (₹)</label>
+                        <input className="inp-lux" name="actualPrice" type="number" defaultValue={editProd?.actualPrice} 
+                          onChange={(e) => setPricing({...pricing, actual: parseInt(e.target.value) || 0})} required />
+                      </div>
+                      <div><label style={{ fontSize: '11px', letterSpacing: '1px' }}>DISCOUNT PRICE (₹)</label>
+                        <input className="inp-lux" name="discountPrice" type="number" defaultValue={editProd?.discountPrice} 
+                          onChange={(e) => setPricing({...pricing, discount: parseInt(e.target.value) || 0})} required />
+                      </div>
+                      <div style={{ gridColumn: 'span 2' }}>
+                        <div className="glass" style={{ padding: '15px', borderRadius: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--gold-soft)' }}>
+                          <span style={{ fontSize: '12px', fontWeight: '600' }}>Calculated Discount:</span>
+                          <span style={{ fontSize: '18px', fontWeight: '800', color: 'var(--gold)' }}>
+                            {pricing.actual > 0 ? Math.round(((pricing.actual - pricing.discount) / pricing.actual) * 100) : 0}% OFF
+                          </span>
+                        </div>
+                      </div>
+                      <div><label style={{ fontSize: '11px', letterSpacing: '1px' }}>TOTAL QUANTITY</label><input className="inp-lux" name="quantity" type="number" defaultValue={editProd?.quantity || 0} required /></div>
+                      
+                      <div style={{ gridColumn: 'span 2' }}>
+                        <label style={{ fontSize: '11px', letterSpacing: '1px' }}>PIECE IMAGES (UP TO 3)</label>
+                        <div style={{ display: 'flex', gap: '15px', marginTop: '10px' }}>
+                          {[0, 1, 2].map(idx => (
+                            <div key={idx} className="glass" style={{ width: '100px', height: '100px', borderRadius: '15px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '1px dashed var(--gold)' }}>
+                              {tempImages[idx] ? (
+                                <>
+                                  <img src={tempImages[idx]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  <button type="button" onClick={() => setTempImages(tempImages.filter((_, i) => i !== idx))} style={{ position: 'absolute', top: '5px', right: '5px', background: 'rgba(255,0,0,0.7)', color: '#fff', border: 'none', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', fontSize: '10px' }}>×</button>
+                                </>
+                              ) : (
+                                <label style={{ cursor: 'pointer', fontSize: '24px', opacity: 0.3 }}>
+                                  +
+                                  <input type="file" hidden accept="image/*" onChange={async (e) => {
+                                    const file = e.target.files[0];
+                                    if(file) {
+                                      try {
+                                        const url = await uploadImage(file);
+                                        const newImgs = [...tempImages];
+                                        newImgs[idx] = url;
+                                        setTempImages(newImgs.filter(Boolean));
+                                      } catch (err) { alert("Upload failed: " + err.message); }
+                                    }
+                                  }} />
+                                </label>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div style={{ gridColumn: 'span 2' }}><label style={{ fontSize: '11px', letterSpacing: '1px' }}>DESCRIPTION</label><textarea className="inp-lux" name="description" rows="3" defaultValue={editProd?.description} /></div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '15px', marginTop: '40px' }}>
+                      <button type="submit" className="btn-lux" style={{ flex: 1 }}>Save Changes</button>
+                      <button type="button" className="btn-lux" style={{ flex: 1, background: '#eee', color: '#666' }} onClick={() => setShowForm(false)}>Cancel</button>
+                    </div>
+                  </form>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<AdminApp />);
+  </script>
+</body>
+</html>
